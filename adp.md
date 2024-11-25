@@ -32,7 +32,7 @@ As $\beta \to \infty$, $\mathrm{L}_\beta$ converges to the standard Bellman oper
 
    $$ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} $$
 
-Despite the confusing terminology, the above "softmax" policy is simply the smooth counterpart to the argmax operator in the original optimality equation: it acts as a soft-argmax. 
+Despite the confusing terminology, the above "softmax" policy is simply the smooth counterpart to the argmax operator in the original optimality equation: it acts as a soft-argmax.
 
 This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike $\gamma$, we view $\beta$ as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.
 
@@ -44,7 +44,7 @@ Finally, it's worth noting that we can also derive this form by considering an e
 
 ## Gumbel Noise on the Rewards
 
-We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of $\tilde{s} = (s, \epsilon)$, where the reward function is given by 
+We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of $\tilde{s} = (s, \epsilon)$, where the reward function is given by
 
 $$\tilde{r}(\tilde{s}, a) = r(s,a) + \epsilon(a)$$
 
@@ -52,7 +52,7 @@ and where the transition probability function is:
 
 $$ p(\tilde{s}' | \tilde{s}, a) = p(s' | s, a) \cdot p(\epsilon') $$
 
-This expression stems from the conditional independence assumption that we make on the noise variable given the state. 
+This expression stems from the conditional independence assumption that we make on the noise variable given the state.
 
 Furthermore, we assume that $\epsilon(a)$ is a random variable following a Gumbel distribution with location 0 and scale $1/\beta$. The Gumbel distribution is a continuous probability distribution used to model the maximum (or minimum) of a number of samples of various distributions. Its probability density function is:
 
@@ -71,7 +71,7 @@ $$
 d(\tilde{s})  \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\}
 $$
 
-Note how the expectation is now over the next augmented state space and is therefore both over the next state in the original MDP and over the next perturbation. While in the general case there isn't much that we can do to simplify the expression for the expectation over the next state in the MDP, we can however leverage a remarkable property of the Gumbel distribution which allows us to eliminate the $\epsilon$ term in the above and recover the familiar smooth Bellman equation. 
+Note how the expectation is now over the next augmented state space and is therefore both over the next state in the original MDP and over the next perturbation. While in the general case there isn't much that we can do to simplify the expression for the expectation over the next state in the MDP, we can however leverage a remarkable property of the Gumbel distribution which allows us to eliminate the $\epsilon$ term in the above and recover the familiar smooth Bellman equation.
 
 For a set of random variables $X_1, \ldots, X_n$, each following a Gumbel distribution with location parameters $\mu_1, \ldots, \mu_n$ and scale parameter $1/\beta$, extreme value theory tells us that:
 
@@ -103,7 +103,7 @@ $$
 
 In order to simplify this expression by taking the expectation over the noise variable, we define an indicator function for the event that action $a$ is in the set of optimal actions:
 
-   $$ I_a(\epsilon) = \begin{cases} 
+   $$ I_a(\epsilon) = \begin{cases}
    1 & \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a'\right] \right\} \\
    0 & \text{otherwise}
    \end{cases} $$
@@ -118,6 +118,7 @@ d(s,\epsilon) &= \left\{a \in \mathcal{A}_s : I_a(\epsilon) = 1\right\} \\
 $$
 
 This set-valued -- but determinisic -- function $d(s,\epsilon)$ gives us the set of optimal actions for a given state $s$ and noise realization $\epsilon$. For simplicity, consider the case where the optimal set of actions at $s$ is a singleton such that taking the expection over the noise variable gives us:
+
 $$ \begin{align*}
 \mathbb{E}_\epsilon[I_a(\epsilon)] = \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a'\right] \right\}\right)
 \end{align*} $$
@@ -126,12 +127,11 @@ Now, we can leverage a key property of the Gumbel distribution. For a set of ran
 
    $$ P(X_i \geq X_j, \forall j \neq i) = \frac{\exp(\beta\mu_i)}{\sum_j \exp(\beta\mu_j)} $$
 
-In our case, $X_a = r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]$ for each action $a$, with $\mu_a = r(s,a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]$. 
+In our case, $X_a = r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]$ for each action $a$, with $\mu_a = r(s,a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]$.
 
 Applying this property and using the definition $v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]$, we get:
 
    $$ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a'\right]\right)\right)} $$
-
 
 This gives us the optimal stochastic policy for the smooth MDP. Note that as $\beta \to \infty$, this policy approaches the deterministic policy of the original MDP, while for finite $\beta$, it gives a stochastic policy.
 
@@ -139,7 +139,7 @@ This gives us the optimal stochastic policy for the smooth MDP. Note that as $\b
 
 The smooth Bellman optimality equations can also be derived from probabilistic inference perspective. To see this, let's go back to the idea from the previous section in which we introduced an indicator function $I_a(\epsilon)$ to represent whether an action $a$ is optimal given a particular realization of the noise $\epsilon$:
 
-$$ I_a(\epsilon) = \begin{cases} 
+$$ I_a(\epsilon) = \begin{cases}
    1 & \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a'\right] \right\} \\
    0 & \text{otherwise}
    \end{cases} $$
@@ -167,9 +167,9 @@ The control problem can now be framed as an inference problem: we want to find t
 
 $$ p(a_t | s_t, O_{1:T} = 1) $$
 
-where $O_{1:T} = 1$ means $O_t = 1$ for all $t$ from 1 to T. 
+where $O_{1:T} = 1$ means $O_t = 1$ for all $t$ from 1 to T.
 
-### Message Passing 
+### Message Passing
 
 To solve this inference problem, we can use a technique from probabilistic graphical models called message passing, specifically the belief propagation algorithm. Message passing is a way to efficiently compute marginal distributions in a graphical model by passing local messages between nodes. Messages are passed between nodes in both forward and backward directions. Each message represents a belief about the distribution of a variable, based on the information available to the sending node. After messages have been passed, each node updates its belief about its associated variable by combining all incoming messages.
 
@@ -181,6 +181,51 @@ This represents the probability of optimality for all future time steps given th
 
 $$ \beta_t(s_t) = \sum_{a_t} p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \beta_{t+1}(s_{t+1}) $$
 
+$$
+\begin{aligned}
+\beta_t(s_t)
+&= p(O_{t:T} = 1 | s_t) \\
+&= \sum_{a_t} p(O_{t:T} = 1, a_t | s_t) \\
+&= \sum_{a_t}  p(O_{t:T} = 1 | a_t, s_t) p(a_t | s_t) \\
+&= \sum_{a_t}  
+p(O_{t} = 1 | a_t, s_t) \cdot
+p(O_{t+1:T} = 1 | a_t, s_t) \cdot
+p(a_t | s_t) \\
+&= \sum_{a_t}  
+p(O_{t} = 1 | a_t, s_t) \cdot
+\left(\sum_{s_{t+1}} p(O_{t+1:T} = 1, s_{t+1} | a_t, s_t)\right) \cdot
+p(a_t | s_t) \\
+&= \sum_{a_t}  
+p(O_{t} = 1 | a_t, s_t) \cdot
+\left(\sum_{s_{t+1}} p(O_{t+1:T} = 1 | s_{t+1}, a_t, s_t) p(s_{t+1} | s_t, a_t)\right) \cdot  
+p(a_t | s_t) \\
+&= \sum_{a_t}
+p(O_{t} = 1 | a_t, s_t) \cdot
+\left(\sum_{s_{t+1}} p(O_{t+1:T} = 1 | s_{t+1}) p(s_{t+1} | s_t, a_t)\right) \cdot
+p(a_t | s_t) \\
+&= \sum_{a_t}
+p(O_{t} = 1 | a_t, s_t) \cdot
+p(a_t | s_t) \cdot
+\left(\sum_{s_{t+1}} p(O_{t+1:T} = 1 | s_{t+1}) p(s_{t+1} | s_t, a_t)\right) \\
+&= \sum_{a_t}
+p(O_{t} = 1 | a_t, s_t) \cdot
+p(a_t | s_t) \cdot
+\sum_{s_{t+1}}
+p(O_{t+1:T} = 1 | s_{t+1}) p(s_{t+1} | s_t, a_t)\\
+&= \sum_{a_t}
+p(a_t | s_t) \cdot
+p(O_t = 1 | s_t, a_t) \cdot
+\sum_{s_{t+1}}
+p(s_{t+1} | s_t, a_t) \cdot
+p(O_{t+1:T} = 1 | s_{t+1}) \\
+&= \sum_{a_t}
+p(a_t | s_t) \cdot
+p(O_t = 1 | s_t, a_t) \cdot
+\sum_{s_{t+1}}
+p(s_{t+1} | s_t, a_t) \cdot
+\beta_{t+1}(s_{t+1})
+\end{aligned}
+$$
 
 Taking the log and assuming a uniform prior over actions, we get:
 
@@ -229,7 +274,7 @@ where $r_d$ is the expected reward under policy $d$, $\gamma$ is the discount fa
 
 $$ \begin{align*}
 q_\gamma^{d^\infty}(s, a) &= r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^{d^\infty}(j) \\
-v_\gamma^{d^\infty}(s) &= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\infty}(s, a) 
+v_\gamma^{d^\infty}(s) &= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\infty}(s, a)
 \end{align*} $$
 
 The policy evaluation operator can then be written in terms of the q-function as:
@@ -246,7 +291,7 @@ An important property of this transform is that it has a unique maximizing argum
 
 $$ \nabla \Omega^*(q(s, \cdot)) = \arg\max_d \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) $$
 
-An important example of a regularizer is the negative entropy, which gives rise to the smooth Bellman equations as we are about to see. 
+An important example of a regularizer is the negative entropy, which gives rise to the smooth Bellman equations as we are about to see.
 
 ## Regularized Bellman Operators
 
@@ -257,7 +302,7 @@ With these concepts in place, we can now define the regularized Bellman operator
    $$ [L_{d,\Omega} v](s) = \langle q(s,\cdot), d(\cdot | s) \rangle - \Omega(d(\cdot | s)) $$
 
 2. **Regularized Bellman Optimality Operator** $(L_\Omega)$:
-           
+
    $$ [L_\Omega v](s) = [\max_d L_{d,\Omega} v ](s) = \Omega^*(q(s, \cdot)) $$
 
 It can be shown that the addition of a regularizer in these regularized operators still preserves the contraction properties, and therefore the existence of a solution to the optimality equations and the convergence of successive approximation.
@@ -333,26 +378,38 @@ $$ (\mathrm{L} v)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \i
 
 To make this computationally tractable for continuous state spaces, we can discretize the state space and approximate the integral over this discretized space. While this allows us to evaluate the Bellman operator componentwise, we must first decide how to represent value functions in this discretized setting.
 
-When working with discretized representations, we partition the state space into $N_s$ cells with centers at grid points $\{s_i\}_{i=1}^{N_s}$. We then work with value functions that are piecewise constant on each cell: ie. for any $s \in S$: $v(s) = v(s_{k(s)})$ where $k(s)$ is the index of the cell containing $s$. We denote the discretized reward function by 
+When working with discretized representations, we partition the state space into $N_s$ cells with centers at grid points $\{s_i\}_{i=1}^{N_s}$. We then work with value functions that are piecewise constant on each cell: ie. for any $s \in S$: $v(s) = v(s_{k(s)})$ where $k(s)$ is the index of the cell containing $s$. We denote the discretized reward function by
 $ r_h(s, a) \equiv r(s_{k(s)}, a) $.
 
 For transition probabilities, we need to be more careful. While we similarly map any state-action pair to its corresponding cell, we must ensure that integrating over the discretized transition function yields a valid probability distribution. We achieve this by normalizing:
 
 $$ p_h(s'|s, a) \equiv \frac{p(s_{k(s')}|s_{k(s)}, a)}{\int p(s_{k(s')}|s_{k(s)}, a) ds'} $$
 
-
 After defining our discretized reward and transition probability functions, we can write down our discretized Bellman operator.
 We start with the Bellman operator using our discretized functions $r_h$ and $p_h$. While these functions map to grid points, they're still defined over continuous spaces - we haven't yet dealt with the computational challenge of the integral. With this discretization approach, the value function is piecewise constant over cells. This lets us express the integral as a sum over cells, where each cell's contribution is the probability of transitioning to that cell multiplied by the value at that cell's grid point:
-$$ \begin{aligned}
+
+$$
+\begin{aligned}
 (\widehat{\mathrm{L}}_h v)(s) &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s')p_h(s'|s, a_k)ds'\right\} \\
 &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s_{k(s')})p_h(s'|s, a_k)ds'\right\} \\
 &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i) \int_{cell_i} p_h(s'|s, a_k)ds'\right\} \\
 &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i)p_h(s_i|s_{k(s)}, a_k)\right\}
-\end{aligned} $$
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+(\widehat{\mathrm{L}}_h v)(s) &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s')p_h(s'|s, a_k)ds'\right\} \\
+&= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s_{k(s')})p_h(s'|s, a_k)ds'\right\} \\
+&= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i) \int_{cell_i} p_h(s'|s, a_k)ds'\right\} \\
+&= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i) \int_{cell_i} p(s_{k(s')}|s_{k(s)}, a_k) ds'\right\} \\
+&= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i) \cdot p(s_{cell_i}|s_{k(s)}, a_k)\right\} \\
+\end{aligned}
+$$
 
 This form makes clear how discretization converts our continuous-space problem into a finite computation: we've replaced integration over continuous space with summation over grid points. The price we pay is that the number of terms in our sum grows exponentially with the dimension of our state space - the familiar curse of dimensionality.
 
-## Monte Carlo Integration 
+## Monte Carlo Integration
 
 Numerical quadrature methods scale poorly with increasing dimension. Specifically, for a fixed error tolerance $\epsilon$, the number of required quadrature points grows exponentially with dimension $d$ as $O\left(\left(\frac{1}{\epsilon}\right)^d\right)$. Furthermore, quadrature methods require explicit evaluation of the transition probability function $p(s'|s,a)$ at specified points—a luxury we don't have in the "model-free" setting where we only have access to samples from the MDP.
 
@@ -374,9 +431,9 @@ $$
 
 for each $s_k \in \mathcal{B}$. A direct adaptation of the successive approximation method for this empirical operator leads to:
 
-```{prf:algorithm} Monte Carlo Value Iteration
-:label: mc-value-iteration
-**Input:** MDP $(S, A, P, R, \gamma)$, , number of samples $N$, tolerance $\varepsilon > 0$, maximum iterations $K$
+---
+#### Monte Carlo Value Iteration
+**Input:** MDP $(S, A, P, R, \gamma)$, number of samples $N$, tolerance $\varepsilon > 0$, maximum iterations $K$  
 **Output:** Value function $v$
 
 1. Initialize $v_0(s) = 0$ for all $s \in S$
@@ -389,16 +446,13 @@ for each $s_k \in \mathcal{B}$. A direct adaptation of the successive approximat
     3. $i \leftarrow i + 1$
 4. **until** $\delta < \varepsilon$ or $i \geq K$
 5. **return** final $v_{i+1}$
-```
+---
 
 Note that the original error bound derived as a termination criterion for value iteration need not hold in this approximate setting. Hence, we use a generic termination criterion based on computational budget and desired tolerance. While this aspect could be improved, we'll focus on a more pressing matter: the algorithm's tendency to produce upwardly biased values. In other words, this algorithm "thinks" the world is more rosy than it actually is - it overestimates values.
 
-
 ### Overestimation Bias in Monte Carlo Value Iteration
 
-
 In statistics, bias refers to a systematic error where an estimator consistently deviates from the true parameter value. For an estimator $\hat{\theta}$ of a parameter $\theta$, we define bias as: $\text{Bias}(\hat{\theta}) = \mathbb{E}[\hat{\theta}] - \theta$. While bias isn't always problematic — sometimes we deliberately introduce bias to reduce variance, as in ridge regression — uncontrolled bias can lead to significantly distorted results. In the context of value iteration, this distortion gets amplified even more due to the recursive nature of the algorithm.
-
 
 Consider how the Bellman operator works in value iteration. At iteration n, we have a value function estimate $v_i(s)$ and aim to improve it by applying the Bellman operator $\mathrm{L}$. The ideal update would be:
 
@@ -449,7 +503,7 @@ The variance term $\max_{a \in \mathcal{A}} \text{Var}_i(s,a)$ will typically be
 
 This creates a dataset of pairs $(\text{Var}_i(s,a^*_i(s)), \hat{b}_i(s))$ that can be used to estimate $\alpha_i$ through ordinary least squares regression. Once we have learned this bias function $\hat{b}$, we can define the bias-corrected Bellman operator:
 
-$$ 
+$$
 (\widetilde{\mathrm{L}}v_i)(s) \triangleq (\hat{\mathrm{L}}v_i)(s) - \hat{b}(s)
 $$
 
@@ -457,8 +511,7 @@ Interestingly, while this bias correction approach has been influential in econo
 
 ### Decoupling Selection and Evaluation
 
-A simpler approach to addressing the upward bias is to maintain two separate q-function estimates - one for action selection and another for evaluation. Let's first start by looking at the corresponding Monte Carlo value iteration algorithm and then convince ourselves that this is good idea using math. Assume a monte carlo integration setup over Q factors: 
-
+A simpler approach to addressing the upward bias is to maintain two separate q-function estimates - one for action selection and another for evaluation. Let's first start by looking at the corresponding Monte Carlo value iteration algorithm and then convince ourselves that this is good idea using math. Assume a monte carlo integration setup over Q factors:
 
 ```{prf:algorithm} Double Monte Carlo Q-Value Iteration
 :label: double-mc-value-iteration
@@ -482,11 +535,11 @@ A simpler approach to addressing the upward bias is to maintain two separate q-f
 4. until $\delta < \varepsilon$ or $i \geq K$
 5. return final $q^A_{i+1}, q^B_{i+1}$
 ```
-In this algorithm, we maintain two separate Q-functions ($q^A$ and $q^B$) and use them asymmetrically: when updating $q^A$, we use network A to select the best action ($a^*_i = \arg\max_{a'} q^A_i(s'_j,a')$) but then evaluate that action using network B's estimates ($q^B_i(s'_j,a^*_i)$). We do the opposite for updating $q^B$. You can see this separation clearly in steps 3.2.2 and 3.2.3 of the algorithm, where for each network update, we first use one network to pick the action and then plug that chosen action into the other network for evaluation. We will see that this decomposition helps mitigate the positive bias that occurs due to Jensen's inequality. 
+In this algorithm, we maintain two separate Q-functions ($q^A$ and $q^B$) and use them asymmetrically: when updating $q^A$, we use network A to select the best action ($a^*_i = \arg\max_{a'} q^A_i(s'_j,a')$) but then evaluate that action using network B's estimates ($q^B_i(s'_j,a^*_i)$). We do the opposite for updating $q^B$. You can see this separation clearly in steps 3.2.2 and 3.2.3 of the algorithm, where for each network update, we first use one network to pick the action and then plug that chosen action into the other network for evaluation. We will see that this decomposition helps mitigate the positive bias that occurs due to Jensen's inequality.
 
 #### An HVAC analogy
 
-Consider a building where each HVAC unit $i$ has some true maximum power draw $\mu_i$ under worst-case conditions. Let's pretend that we don't have access to manufacturer datasheets, so we need to estimate these maxima from actual measurements. Now the challenge is that power draw fluctuates with environmental conditions. If we use a single day's measurements and look at the highest power draw, we systematically overestimate the true maximum draw across all units. 
+Consider a building where each HVAC unit $i$ has some true maximum power draw $\mu_i$ under worst-case conditions. Let's pretend that we don't have access to manufacturer datasheets, so we need to estimate these maxima from actual measurements. Now the challenge is that power draw fluctuates with environmental conditions. If we use a single day's measurements and look at the highest power draw, we systematically overestimate the true maximum draw across all units.
 
 To see this, let $X_A^i$ be unit i's power draw on day A and $X_B^i$ be unit i's power draw on day. Wile both measurements are unbiased $\mathbb{E}[X_A^i] = \mathbb{E}[X_B^i] = \mu_i$, their maximum is not due to Jensen's inequality:
 
@@ -528,7 +581,6 @@ This tells us that the two-day estimator is now an average of the true underlyin
 $$
 \mathbb{E}[Y] = \sum_{j=1}^n \mu_j P(\arg\max_i X_A^i = j)
 $$
-
 
 To analyze $ \mathbb{E}[Y] $ more closely, let’s use a general result: if we have a real-valued function $ f $ defined on a discrete set of units $ \{1, \dots, n\} $ and a probability distribution $ q(\cdot) $ over these units, then the maximum value of $ f $ across all units is at least as large as the weighted sum of $ f $ values with weights $ q $. Formally,
 
@@ -589,7 +641,6 @@ $$
 
 As $ m \to \infty $, $ \mu_{J_m} $ converges to $ \max_i \mu_i $. Thus, $ Y_m $ will also converge in probability to $ \max_i \mu_i $ because $ Y_m $ is centered around $ \mu_{J_m} $ and $ J_m $ converges to the index of the unit with $ \max_i \mu_i $.
 
-
 Combining these two steps, we conclude that:
 
 $$
@@ -608,7 +659,7 @@ So what can we do? Our approach will be to compute the operator at chosen "grid 
 
 ## Partial Updates in the Tabular Case
 
-The ideas presented in this section apply more broadly to the successive approximation method applied to a fixed-point problem. Consider again the problem of finding the optimal value function $v_\gamma^\star$ as the solution to the Bellman optimality operator $\mathrm{L}$: 
+The ideas presented in this section apply more broadly to the successive approximation method applied to a fixed-point problem. Consider again the problem of finding the optimal value function $v_\gamma^\star$ as the solution to the Bellman optimality operator $\mathrm{L}$:
 
 $$
 \mathrm{L} \mathbf{v} \equiv \max_{d \in D^{MD}} \left\{\mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v}\right\}
@@ -620,11 +671,9 @@ $$
 v_{n+1}(s) := (\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
 $$
 
-Pay particular attention to the $\forall s \in \mathcal{S}$ notation: what happens when we can't afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates. 
+Pay particular attention to the $\forall s \in \mathcal{S}$ notation: what happens when we can't afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates.
 
-```{prf:algorithm} Gauss-Seidel Value Iteration
-:label: alg-gsvi
-
+---
 **Input:** MDP $(S, A, P, R, \gamma)$, convergence threshold $\varepsilon > 0$  
 **Output:** Value function $v$ and policy $d$
 
@@ -634,13 +683,13 @@ Pay particular attention to the $\forall s \in \mathcal{S}$ notation: what happe
 
 2. **Main Loop:**
    - Set state index $j = 1$
-   
+
    a) **State Update:** Compute $v^{n+1}(s_j)$ as:
 
       $$
       v^{n+1}(s_j) = \max_{a \in A_j} \left\{r(s_j, a) + \gamma \left[\sum_{i<j} p(s_i|s_j,a)v^{n+1}(s_i) + \sum_{i \geq j} p(s_i|s_j,a)v^n(s_i)\right]\right\}
       $$
-   
+
    b) If $j = |S|$, proceed to step 3
       Otherwise, increment $j$ and return to step 2(a)
 
@@ -656,12 +705,12 @@ Pay particular attention to the $\forall s \in \mathcal{S}$ notation: what happe
    $$
 
 **Note:** The algorithm differs from standard value iteration in that it immediately uses updated values within each iteration. This is reflected in the first sum of step 2(a), where $v^{n+1}$ is used for already-updated states.
-```
+
+---
 
 The Gauss-Seidel value iteration approach offers several advantages over standard value iteration: it can be more memory-efficient and often leads to faster convergence. This idea generalizes further (see for example {cite:t}`Bertsekas1983`) to accommodate fully asynchronous updates in any order. However, these methods, while more flexible in their update patterns, still fundamentally rely on a tabular representation—that is, they require storing and eventually updating a separate value for each state in memory. Even if we update states one at a time or in blocks, we must maintain this complete table of values, and our convergence guarantee assumes that every entry in this table will eventually be revised.
 
-But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play. 
-
+But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play.
 
 ## Partial Updates by Operator Fitting: Parametric Value Iteration
 
@@ -700,10 +749,14 @@ Parametric successive approximation, known in reinforcement learning literature 
 
 - Neural network approximation (via `MLPRegressor`) gives rise to Neural Fitted Q-Iteration as developed by Riedmiller {cite}`riedmiller2005neural`.
 
-The \texttt{fit} function in our algorithm represents this supervised learning step and can be implemented using any standard regression tool that follows the scikit-learn interface. This flexibility in choice of function approximator allows practitioners to leverage the extensive ecosystem of modern machine learning tools while maintaining the core dynamic programming structure.
+The $\textit{fit}$ function in our algorithm represents this supervised learning step and can be implemented using any standard regression tool that follows the scikit-learn interface. This flexibility in choice of function approximator allows practitioners to leverage the extensive ecosystem of modern machine learning tools while maintaining the core dynamic programming structure.
 
-```{prf:algorithm} Parametric Value Iteration
-:label: parametric-value-iteration
+---
+
+<!-- ```{prf:algorithm} Parametric Value Iteration
+:label: parametric-value-iteration -->
+
+#### Parametric Value Iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -724,7 +777,10 @@ The \texttt{fit} function in our algorithm represents this supervised learning s
 
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$
-```
+<!-- ``` -->
+
+---
+
 The structure of the above algorithm mirrors value iteration in its core idea of iteratively applying the Bellman operator. However, several key modifications distinguish this fitted variant:
 
 First, rather than applying updates across the entire state space, we compute the operator only at selected base points $B$. The resulting values are then stored implicitly through the parameter vector $\boldsymbol{\theta}$ via the fitting step, rather than explicitly as in the tabular case.
@@ -773,8 +829,12 @@ $$
 
 This leads to the following algorithm:
 
-```{prf:algorithm} Parametric Policy Iteration
-:label: parametric-policy-iteration
+---
+
+<!-- ```{prf:algorithm} Parametric Policy Iteration
+:label: parametric-policy-iteration -->
+
+#### Parametric Policy Iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -789,18 +849,19 @@ This leads to the following algorithm:
         1. $y_k \leftarrow r(s_k,d_n(s_k)) + \gamma \int v_n(s')p(ds'|s_k,d_n(s_k))$
         2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{(s_k, y_k)\}$
     4. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
-    
+
     5. // Policy Improvement at Base Points
     6. For each $s_k \in B$:
         1. $d_{n+1}(s_k) \leftarrow \arg\max_{a \in A} \{r(s_k,a) + \gamma \int v_n(s')p(ds'|s_k,a)\}$
-    
+
     7. $n \leftarrow n + 1$
 4. **until** ($n \geq N$ or convergence criterion met)
 5. **return** $\boldsymbol{\theta}_n$
-```
+<!-- ``` -->
+
+---
 
 As opposed to exact policy iteration, the iterates of parametric policy iteration need not converge monotonically to the optimal value function. Intuitively, this is because we use function approximation to generalize  from base points to the entire state space which can lead to Value estimates improving at base points but degrading at other states or can cause interference between updates at different states due to the shared parametric representation
-
 
 ## Q-Factor Representation
 
@@ -836,8 +897,11 @@ $$
 
 With this insight, we can adapt our parametric value iteration algorithm to work with Q-functions:
 
-```{prf:algorithm} Parametric Q-Value Iteration
-:label: parametric-q-value-iteration
+---
+<!-- ```{prf:algorithm} Parametric Q-Value Iteration
+:label: parametric-q-value-iteration -->
+
+#### Parametric Q-Value Iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B} \subset S$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -855,7 +919,8 @@ With this insight, we can adapt our parametric value iteration algorithm to work
     5. $n \leftarrow n + 1$
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$
-```
+<!-- ``` -->
+---
 
 ## Warmstarting: The Choice of Initialization
 
@@ -865,8 +930,11 @@ The basic idea is simple: rather than starting each fitting procedure from scrat
 
 Here's how warmstarting can be incorporated into parametric Q-learning with one-step Monte Carlo integration:
 
-```{prf:algorithm} Warmstarted Parametric Q-Learning with N=1 Monte Carlo Integration
-:label: warmstarted-q-learning
+---
+<!-- ```{prf:algorithm} Warmstarted Parametric Q-Learning with N=1 Monte Carlo Integration
+:label: warmstarted-q-learning -->
+
+#### Warmstarted Parametric Q-Learning with N=1 Monte Carlo Integration
 
 **Input** Given dataset $\mathcal{D}$ with transitions $(s, a, r, s')$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$, warmstart frequency $k$
 
@@ -888,7 +956,8 @@ Here's how warmstarting can be incorporated into parametric Q-learning with one-
     5. $n \leftarrow n + 1$
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$
-```
+<!-- ``` -->
+---
 
 The main addition here is the periodic reset of parameters (controlled by frequency $k$) which helps balance the benefits of warmstarting with the need to avoid potential overfitting. When $k=\infty$, we get traditional persistent warmstarting, while $k=1$ corresponds to training from scratch each iteration.
 
@@ -902,8 +971,11 @@ The intuition for using early stopping in the inner optimization mirrors that of
 
 This perspective helps us understand modern deep reinforcement learning algorithms. For instance, DQN can be viewed as an instance of fitted Q-iteration where the inner optimization is intentionally limited. Here's how we can formalize this approach:
 
-```{prf:algorithm} Early-Stopping Fitted Q-Iteration
-:label: early-stopping-fqi
+---
+<!-- ```{prf:algorithm} Early-Stopping Fitted Q-Iteration
+:label: early-stopping-fqi -->
+
+#### Early-Stopping Fitted Q-Iteration
 
 **Input** Given dataset $\mathcal{D}$ with transitions $(s, a, r, s')$, function approximator $q(s,a; \boldsymbol{\theta})$, maximum outer iterations $N_{outer}$, maximum inner iterations $N_{inner}$, outer tolerance $\varepsilon_{outer}$, inner tolerance $\varepsilon_{inner}$
 
@@ -929,7 +1001,10 @@ This perspective helps us understand modern deep reinforcement learning algorith
     10. $n \leftarrow n + 1$
 4. **until** ($\delta_{outer} < \varepsilon_{outer}$ or $n \geq N_{outer}$)
 5. **return** $\boldsymbol{\theta}_n$
-```
+6.
+<!-- ``` -->
+---
+
 This formulation makes explicit the two-level optimization structure and allows us to control the trade-off between inner loop optimization accuracy and overall computational efficiency. When $N_{inner}=1$, we recover something closer to DQN's update rule, while larger values of $N_{inner}$ bring us closer to the full fitted Q-iteration approach.
 
 # Example Methods
@@ -938,12 +1013,15 @@ There are several moving parts we can swap in and out when working with parametr
 
 ## Kernel-Based Reinforcement Learning (2002)
 
-Ormoneit and Sen's Kernel-Based Reinforcement Learning (KBRL) {cite}`Ormoneit2002` helped establish the general paradigm of batch reinforcement learning later advocated by {cite}`ErnstGW05`. KBRL is a purely offline method that first collects a fixed set of transitions and then uses kernel regression to solve the optimal control problem through value iteration on this dataset. While the dominant approaches at the time were online methods like temporal difference, KBRL showed that another path to developping reinforcement learning algorithm was possible: one that capable of leveraging advances in supervised learning to provide both theoretical and practical benefits. 
+Ormoneit and Sen's Kernel-Based Reinforcement Learning (KBRL) {cite}`Ormoneit2002` helped establish the general paradigm of batch reinforcement learning later advocated by {cite}`ErnstGW05`. KBRL is a purely offline method that first collects a fixed set of transitions and then uses kernel regression to solve the optimal control problem through value iteration on this dataset. While the dominant approaches at the time were online methods like temporal difference, KBRL showed that another path to developping reinforcement learning algorithm was possible: one that capable of leveraging advances in supervised learning to provide both theoretical and practical benefits.
 
-As the name suggests, KBRL uses kernel based regression within the general framework of outlined above. 
+As the name suggests, KBRL uses kernel based regression within the general framework of outlined above.
 
-```{prf:algorithm} Kernel-Based Q-Value Iteration
-:label: kernel-based-q-iteration
+---
+<!-- ```{prf:algorithm} Kernel-Based Q-Value Iteration
+:label: kernel-based-q-iteration -->
+
+#### Kernel-Based Q-Value Iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, kernel bandwidth $b$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -961,7 +1039,9 @@ As the name suggests, KBRL uses kernel based regression within the general frame
     5. $n \leftarrow n + 1$
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\hat{Q}_n$
-```
+<!-- ``` -->
+---
+
 Step 3 is where KBRL uses kernel regression with a normalized weighting kernel:
 
 $$k_b(x^l_t, x) = \frac{\phi(\|x^l_t - x\|/b)}{\sum_{l'} \phi(\|x^l_{t'} - x\|/b)}$$
@@ -974,7 +1054,7 @@ The main practical limitation of KBRL is computational - being a batch method, i
 
 ## Ernst's Fitted Q Iteration (2005)
 
-Ernst's {cite}`ErnstGW05` specific instantiation of parametric q-value iteration uses extremely randomized trees, an extension to random forests proposed by  {cite:t}`Geurts2006`. This algorithm became particularly well-known, partly because it was one of the first to demonstrate the advantages of offline reinforcement learning in practice on several challenging benchmarks at the time. 
+Ernst's {cite}`ErnstGW05` specific instantiation of parametric q-value iteration uses extremely randomized trees, an extension to random forests proposed by  {cite:t}`Geurts2006`. This algorithm became particularly well-known, partly because it was one of the first to demonstrate the advantages of offline reinforcement learning in practice on several challenging benchmarks at the time.
 
 Random Forests and Extra-Trees differ primarily in how they construct individual trees. Random Forests creates diversity in two ways: it resamples the training data (bootstrap) for each tree, and at each node it randomly selects a subset of features but then searches exhaustively for the best cut-point within each selected feature. In contrast, Extra-Trees uses the full training set for each tree and injects randomization differently: at each node, it not only randomly selects features but also randomly selects the cut-points without searching for the optimal one. It then picks the best among these completely random splits according to a variance reduction criterion. This double randomization - in both feature and cut-point selection - combined with using the full dataset makes Extra-Trees faster than Random Forests while maintaining similar predictive accuracy.
 
@@ -984,8 +1064,10 @@ Standard Extra-Trees ($K>1$), however, uses target values to choose the best amo
 
 The complete algorithm can be formalized as follows:
 
-```{prf:algorithm} Extra-Trees Fitted Q Iteration
-:label: extra-trees-fqi
+---
+<!-- ```{prf:algorithm} Extra-Trees Fitted Q Iteration
+:label: extra-trees-fqi -->
+#### Extra-Trees Fitted Q Iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, Extra-Trees parameters $(K, n_{min}, M)$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -1003,7 +1085,9 @@ The complete algorithm can be formalized as follows:
     5. $n \leftarrow n + 1$
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\hat{Q}_n$
-```
+<!-- ``` -->
+---
+
 ## Neural Fitted Q Iteration (2005)
 
 Riedmiller's Neural Fitted Q Iteration (NFQI) {cite}`Riedmiller05` is a natural instantiation of parametric Q-value iteration where:
@@ -1022,8 +1106,11 @@ where $s'_{observed}$ is the actual next state that was observed after taking ac
 
 The algorithm follows from the parametric Q-value iteration template:
 
-```{prf:algorithm} Neural Fitted Q Iteration
-:label: neural-fitted-q-iteration
+---
+<!-- ```{prf:algorithm} Neural Fitted Q Iteration
+:label: neural-fitted-q-iteration -->
+
+#### Neural Fitted Q Iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, MLP architecture $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -1041,7 +1128,8 @@ The algorithm follows from the parametric Q-value iteration template:
     5. $n \leftarrow n + 1$
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$
-```
+<!-- ``` -->
+---
 
 While NFQI was originally introduced as an offline method with base points collected a priori, the authors also present a variant where base points are collected incrementally. In this online variant, new transitions are gathered using the current policy (greedy with respect to $Q_k$) and added to the experience set. This approach proves particularly useful when random exploration cannot efficiently collect representative experiences.
 
@@ -1065,7 +1153,7 @@ First, let's start with basic parametric Q-value iteration using a neural networ
     2. For each $(s,a,r,s') \in \mathcal{T}$:
         1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_n)$
         2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}$
-    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_n, \boldsymbol{\theta}_0)$ // Fit neural network using built-in convergence criterion 
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_n, \boldsymbol{\theta}_0)$ // Fit neural network using built-in convergence criterion
     4. $n \leftarrow n + 1$
 4. **until** training complete
 5. **return** $\boldsymbol{\theta}_n$
@@ -1180,7 +1268,7 @@ An alternative to this periodic swap of parameters is to use an exponential movi
 4. **return** $\boldsymbol{\theta}_n$
 ```
 
-Note that the original DQN used the periodic swap of parameters rather than EMA targets. 
+Note that the original DQN used the periodic swap of parameters rather than EMA targets.
 EMA targets (also called "Polyak averaging") started becoming popular in deep RL with DDPG {cite}`lillicrap2015continuous` where they used a "soft" target update: $\boldsymbol{\theta}_{target} \leftarrow \tau\boldsymbol{\theta} + (1-\tau)\boldsymbol{\theta}_{target}$ with a small $\tau$ (like 0.001). This has since become a common choice in many algorithms like TD3 {cite}`fujimoto2018addressing` and SAC {cite}`haarnoja2018soft`.
 
 ### Online Data Collection and Experience Replay
@@ -1220,7 +1308,7 @@ This version faces two practical challenges. First, the transition dataset $\mat
 
 Here's how we can modify our algorithm to incorporate these ideas:
 
-```{prf:algorithm} Deep-Q Network 
+```{prf:algorithm} Deep-Q Network
 :label: online-nfqi-replay
 
 **Input** Given MDP $(S, A, P, R, \gamma)$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, target update frequency $K$, replay buffer size $B$, mini-batch size $b$
@@ -1291,7 +1379,7 @@ The main difference from the original DQN is in step 7, where we now separate ac
 
 ## Deep Q Networks with Resets (2022)
 
-In flattening neural fitted Q-iteration, our field had perhaps lost sight of an important structural element: the choice of inner-loop initializer inherent in the original FQI algorithm. The traditional structure explicitly separated outer iterations (computing targets) from inner optimization (fitting to those targets), with each inner optimization starting fresh from parameters $\boldsymbol{\theta}_0$. 
+In flattening neural fitted Q-iteration, our field had perhaps lost sight of an important structural element: the choice of inner-loop initializer inherent in the original FQI algorithm. The traditional structure explicitly separated outer iterations (computing targets) from inner optimization (fitting to those targets), with each inner optimization starting fresh from parameters $\boldsymbol{\theta}_0$.
 
 The flattened version with persistent warmstarting seemed like a natural optimization - why throw away learned parameters? However, recent work {cite}`Doro2023` has shown that persistent warmstarting can actually be detrimental to learning. Neural networks tend to lose their ability to learn and generalize over the course of training, suggesting that occasionally starting fresh from $\boldsymbol{\theta}_0$ might be beneficial. Here's how this looks algorithmically in the context of DQN:
 
@@ -1326,7 +1414,7 @@ The flattened version with persistent warmstarting seemed like a natural optimiz
 6. **return** $\boldsymbol{\theta}_n$
 ```
 
-This algorithm change allows us to push the limits of our update ratio - the number of gradient steps we perform per environment interaction. Without resets, increasing this ratio leads to diminishing returns as the network's ability to learn degrades. However, by periodically resetting the parameters while maintaining our dataset of transitions, we can perform many more updates per interaction, effectively making our algorithm more "offline" and thus more sample efficient. 
+This algorithm change allows us to push the limits of our update ratio - the number of gradient steps we perform per environment interaction. Without resets, increasing this ratio leads to diminishing returns as the network's ability to learn degrades. However, by periodically resetting the parameters while maintaining our dataset of transitions, we can perform many more updates per interaction, effectively making our algorithm more "offline" and thus more sample efficient.
 
 The hard reset strategy, while effective, might be too aggressive in some settings as it completely discards learned parameters. An alternative approach is to use a softer form of reset, adapting the "Shrink and Perturb" technique originally introduced by {cite:t}`ash2020warm` in the context of continual learning. In their work, they found that neural networks that had been trained on one task could better adapt to new tasks if their parameters were partially reset - interpolated with a fresh initialization - rather than either kept intact or completely reset.
 
@@ -1439,7 +1527,7 @@ $$\Gamma(v)(s) = \frac{\sum_{i=1}^n K(s - s_i)v(s_i)}{\sum_{i=1}^n K(s - s_i)}$$
 
 The denominator normalizes the weights to sum to 1, making this an averager with weights $w_i(s) = \frac{K(s - s_i)}{\sum_{j=1}^n K(s - s_j)}$.
 
-### Linear Regression 
+### Linear Regression
 
 In contrast, methods like linear regression and neural networks can and often do extrapolate beyond their training targets. More precisely, given a dataset of state-value pairs $\{(s_i, v(s_i))\}_{i=1}^n$, these methods fit parameters to minimize some error criterion, and the resulting function $\Gamma(v)(s)$ may take values outside the interval $[\min_i v(s_i), \max_i v(s_i)]$ even when evaluated at a new state $s$. For instance, linear regression finds parameters by minimizing squared error:
 
@@ -1492,9 +1580,8 @@ The natural cubic spline for $v$ will overshoot at $s \approx 0.5$ and undershoo
 
 $$\|v - w\|_\infty = 1$$
 
-but 
+but
 
 $$\|\Gamma(v) - \Gamma(w)\|_\infty > 1$$
 
 This illustrates a general principle: methods that try to create smooth functions by minimizing some global criterion (like curvature in splines) often sacrifice the non-expansion property to achieve their smoothness goals.
-

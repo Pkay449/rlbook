@@ -711,8 +711,6 @@ Since we've shown $R_1 \leq R_2$ and $R_2 \leq R_1$, we can conclude that $R_1 =
 
 The optimality equations are operator equations. Therefore, we can apply general numerical methods to solve them. Applying the successive approximation method to the Bellman optimality equation yields a method known as "value iteration" in dynamic programming. A direct application of the blueprint for successive approximation yields the following algorithm:
 
-````{prf:algorithm} Value Iteration
-:label: value-iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$ and tolerance $\varepsilon > 0$  
 
@@ -735,7 +733,7 @@ The optimality equations are operator equations. Therefore, we can apply general
     1. $\pi(s) \leftarrow \arg\max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_n(s')\right\}$  
 
 6. **return** $v_n, \pi$  
-````
+
 
 The termination criterion in this algorithm is based on a specific bound that provides guarantees on the quality of the solution. This is in contrast to supervised learning, where we often use arbitrary termination criteria based on computational budget or early stopping when the learning curve flattens. This is because establishing implementable generalization bounds in supervised learning is challenging.
 

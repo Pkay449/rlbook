@@ -165,8 +165,10 @@ $$
 
 When using neural networks to parametrize $q$ and $d$, we obtain the Neural Fitted Q-Iteration with Continuous Actions (NFQCA) algorithm proposed by {cite}`Hafner2011`.
 
-```{prf:algorithm} Neural Fitted Q-Iteration with Continuous Actions (NFQCA)
-:label: nfqca
+<!-- ```{prf:algorithm} Neural Fitted Q-Iteration with Continuous Actions (NFQCA)
+:label: nfqca -->
+
+#### Neural Fitted Q-Iteration with Continuous Actions (NFQCA)
 
 **Input** MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B}$, Q-function $q(s,a; \boldsymbol{\theta})$, policy $d(s; \boldsymbol{w})$
 
@@ -182,7 +184,7 @@ When using neural networks to parametrize $q$ and $d$, we obtain the Neural Fitt
     3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_q)$
     4. $\boldsymbol{w}_{n+1} \leftarrow \texttt{minimize}_{\boldsymbol{w}} -\frac{1}{|\mathcal{B}|} \sum_{(s,a,r,s') \in \mathcal{B}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta}_{n+1})$
 3. **return** $\boldsymbol{\theta}_n$, $\boldsymbol{w}_n$
-```
+<!-- ``` -->
 
 
 In practice, both the `fit` and `minimize` operations above are implemented using gradient descent. For the Q-function, the `fit` operation minimizes the mean squared error between the network's predictions and the target values:

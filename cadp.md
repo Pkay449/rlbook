@@ -15,11 +15,11 @@ kernelspec:
 
 In the previous chapter, we explored various approaches to approximate dynamic programming, focusing on ways to handle large state spaces through function approximation. However, these methods still face significant challenges when dealing with large or continuous action spaces. The need to maximize over actions during the Bellman operator evaluation becomes computationally prohibitive as the action space grows.
 
-This chapter explores a natural evolution of these ideas: rather than exhaustively searching over actions, we can parameterize and directly optimize the policy itself. We begin by examining how fitted Q methods, while powerful for handling large state spaces, still struggle with action space complexity. 
+This chapter explores a natural evolution of these ideas: rather than exhaustively searching over actions, we can parameterize and directly optimize the policy itself. We begin by examining how fitted Q methods, while powerful for handling large state spaces, still struggle with action space complexity.
 
 # Embedded Optimization
 
-Recall that in fitted Q methods, the main idea is to compute the Bellman operator only at a subset of all states, relying on function approximation to generalize to the remaining states. At each step of the successive approximation loop, we build a dataset of input state-action pairs mapped to their corresponding optimality operator evaluations: 
+Recall that in fitted Q methods, the main idea is to compute the Bellman operator only at a subset of all states, relying on function approximation to generalize to the remaining states. At each step of the successive approximation loop, we build a dataset of input state-action pairs mapped to their corresponding optimality operator evaluations:
 
 $$
 \mathcal{D}_n = \{((s, a), (Lq)(s, a; \boldsymbol{\theta}_n)) \mid (s,a) \in \mathcal{B}\}
@@ -33,8 +33,10 @@ $$
 
 While this strategy allows us to handle very large or even infinite (continuous) state spaces, it still requires maximizing over actions ($\max_{a \in A}$) during the dataset creation when computing the operator $L$ for each basepoint. This maximization becomes computationally expensive for large action spaces. A natural improvement is to add another level of optimization: for each sample added to our regression dataset, we can employ numerical optimization methods to find actions that maximize the Bellman operator for the given state.
 
-```{prf:algorithm} Fitted Q-Iteration with Explicit Optimization
-:label: fitted-q-iteration-explicit
+<!-- ```{prf:algorithm} Fitted Q-Iteration with Explicit Optimization
+:label: fitted-q-iteration-explicit -->
+
+#### Fitted Q-Iteration with Explicit Optimization
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B}$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -52,13 +54,13 @@ While this strategy allows us to handle very large or even infinite (continuous)
     5. $n \leftarrow n + 1$
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$
-```
+<!-- ``` -->
 
 The above pseudocode introduces a generic $\texttt{maximize}$ routine which represents any numerical optimization method that searches for an action maximizing the given function. This approach is versatile and can be adapted to different types of action spaces. For continuous action spaces, we can employ standard nonlinear optimization methods like gradient descent or L-BFGS (e.g., using scipy.optimize.minimize). For large discrete action spaces, we can use integer programming solvers - linear integer programming if the Q-function approximator is linear in actions, or mixed-integer nonlinear programming (MINLP) solvers for nonlinear Q-functions. The choice of solver depends on the structure of our Q-function approximator and the constraints on our action space.
 
 ## Amortized Optimization Approach
 
-This process is computationally intensive. A natural question is whether we can "amortize" some of this computation by replacing the explicit optimization for each sample with a direct mapping that gives us an approximate maximizer directly. 
+This process is computationally intensive. A natural question is whether we can "amortize" some of this computation by replacing the explicit optimization for each sample with a direct mapping that gives us an approximate maximizer directly.
 For Q-functions, recall that the operator is given by:
 
 $$
@@ -83,8 +85,10 @@ $$
 
 Note that $d^\star$ is implemented by our $\texttt{maximize}$ numerical solver in the procedure above. A practical strategy would be to collect these maximizer values at each step and use them to train a function approximator that directly predicts these solutions. Due to computational constraints, we might want to compute these exact maximizer values only for a subset of states, based on some computational budget, and use the fitted decision rule to generalize to the remaining states. This leads to the following amortized version:
 
-```{prf:algorithm} Fitted Q-Iteration with Amortized Optimization
-:label: fitted-q-iteration-amortized
+<!-- ```{prf:algorithm} Fitted Q-Iteration with Amortized Optimization
+:label: fitted-q-iteration-amortized -->
+
+#### Fitted Q-Iteration with Amortized Optimization
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B}$, subset for exact optimization $\mathcal{B}_{\text{opt}} \subset \mathcal{B}$, Q-function approximator $q(s,a; \boldsymbol{\theta})$, policy approximator $d(s; \boldsymbol{w})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -114,7 +118,7 @@ Note that $d^\star$ is implemented by our $\texttt{maximize}$ numerical solver i
     10. $n \leftarrow n + 1$
 4. **until** ($\max(\delta_q, \delta_d) \geq \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$, $\boldsymbol{w}_n$
-```
+<!-- ``` -->
 
 An important observation about this procedure is that the policy $d(s; \boldsymbol{w})$ is being trained on a dataset $\mathcal{D}_d$ containing optimal actions computed with respect to an evolving Q-function. Specifically, at iteration n, we collect pairs $(s', a^*_{s'})$ where $a^*_{s'} = \arg\max_a q(s', a; \boldsymbol{\theta}_n)$. However, after updating to $\boldsymbol{\theta}_{n+1}$, these actions may no longer be optimal with respect to the new Q-function.
 
@@ -134,12 +138,9 @@ This introduces a trade-off between using more data (larger K) versus using more
 
 Now the main issue with this approach, apart from the intrinsic out-of-distribution drift that we are trying to track, is that it requires "ground truth" - samples of optimal actions computed by the actual solver. This raises an intriguing question: how few samples do we actually need? Could we even envision eliminating the solver entirely? What seems impossible at first glance turns out to be achievable. The intuition is that as our policy improves at selecting actions, we can bootstrap from these increasingly better choices. As we continuously amortize these improving actions over time, it creates a virtuous cycle of self-improvement towards the optimal policy. But for this bootstrapping process to work, we need careful management - move too quickly and the process may become unstable. Let's examine how this balance can be achieved.
 
-
-# Deterministic Parametrized Policies 
-
+# Deterministic Parametrized Policies
 
 In this section, we consider deterministic parametrized policies of the form $d(s; \boldsymbol{w})$ which directly output an action given a state. This approach differs from stochastic policies that output probability distributions over actions, making it particularly suitable for continuous control problems where the optimal policy is often deterministic. We'll see how fitted Q-value methods can be naturally extended to simultaneously learn both the Q-function and such a deterministic policy.
-
 
 ## Neural Fitted Q-iteration for Continuous Actions (NFQCA)
 
@@ -156,7 +157,6 @@ $$
 $$
 
 However in practice, we do not have access to $q^*$. Instead, we need to approximate $q^*$ with a Q-function $q(s, a; \boldsymbol{\theta})$, parameterized by $\boldsymbol{\theta}$, which we will learn simultaneously with the policy function $d(s; \boldsymbol{w})$. Given a samples of initial states drawn from $\mu$, we then maximize this objective via a Monte Carlo surrogate problem:  
-
 
 $$
 \max_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})] \approx
@@ -185,7 +185,6 @@ When using neural networks to parametrize $q$ and $d$, we obtain the Neural Fitt
     4. $\boldsymbol{w}_{n+1} \leftarrow \texttt{minimize}_{\boldsymbol{w}} -\frac{1}{|\mathcal{B}|} \sum_{(s,a,r,s') \in \mathcal{B}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta}_{n+1})$
 3. **return** $\boldsymbol{\theta}_n$, $\boldsymbol{w}_n$
 <!-- ``` -->
-
 
 In practice, both the `fit` and `minimize` operations above are implemented using gradient descent. For the Q-function, the `fit` operation minimizes the mean squared error between the network's predictions and the target values:
 
@@ -301,7 +300,8 @@ While DDPG provided a foundation for continuous control with deep RL, it suffers
     
 **return** $\boldsymbol{\theta}^A_n$, $\boldsymbol{\theta}^B_n$, $\boldsymbol{w}_n$
 ```
-Similar to Double Q-learning, TD3 decouples selection from evaluation when forming the targets. However, instead of intertwining the two existing online and target networks, TD3 suggests learning two Q-functions simultaneously and uses their minimum when computing target values to help combat the overestimation bias further. 
+
+Similar to Double Q-learning, TD3 decouples selection from evaluation when forming the targets. However, instead of intertwining the two existing online and target networks, TD3 suggests learning two Q-functions simultaneously and uses their minimum when computing target values to help combat the overestimation bias further.
 
 Furthermore, when computing target Q-values, TD3 adds small random noise to the target policy's actions and clips it to keep the perturbations bounded. This regularization technique essentially implements a form of "policy smoothing" that prevents the policy from exploiting areas where the Q-function may have erroneously high values:
 
@@ -309,10 +309,10 @@ Furthermore, when computing target Q-values, TD3 adds small random noise to the 
 
 While DDPG used the OU process which generates temporally correlated noise, TD3's authors found that simple uncorrelated Gaussian noise works just as well for exploration. It is also easier to implement and tune since you only need to set a single parameter ($\sigma_{explore}$) for exploration rather than the multiple parameters required by the OU process ($\theta$, $\mu$, $\sigma$).
 
-
 Finally, TD3 updates the policy network (and target networks) less frequently than the Q-networks, typically once every $d$ Q-function updates. This helps reduce the per-update error and gives the Q-functions time to become more accurate before they are used to update the policy.
 
 # Soft Actor-Critic
+
 Adapting the intuition of NFQCA to the smooth Bellman optimality equations leads us to the soft actor-critic algorithm {cite}`haarnoja2018soft`. To understand this connection, let's first examine how the smooth Bellman equations emerge naturally from entropy regularization.
 
 Consider the standard Bellman operator augmented with an entropy term. The smooth Bellman operator $\mathrm{L}_\beta$ takes the form:
@@ -333,7 +333,7 @@ $$
 r(s,a) + \gamma v(s') - \beta(1 + \log d(a|s)) - \lambda(s) = 0
 $$
 
-Solving for $d$ shows that the optimal policy is a Boltzmann distribution 
+Solving for $d$ shows that the optimal policy is a Boltzmann distribution
 
 $$
 d^*(a|s) = \frac{\exp(\frac{1}{\beta}(r(s,a) + \gamma \mathbb{E}_{s'}[v(s')]))}{Z(s)}
@@ -347,7 +347,7 @@ v(s) &= \mathbb{E}_{a \sim d^*}[r(s,a) + \gamma v(s')] + \beta\mathcal{H}(d^*) \
 &= \beta \log \int_A \exp(\frac{1}{\beta}(r(s,a) + \gamma \mathbb{E}_{s'}[v(s')]))da
 \end{align*}
 $$
- 
+
 As we saw at the beginning of this chapter, the smooth Bellman optimality operator for Q-factors is defined as:
 
 $$
@@ -420,7 +420,6 @@ $$
 \operatorname{minimize}_{\phi} \mathbb{E}_{s \sim \mu(s)}\left[D_{KL}\left(d(\cdot|s;\phi) \| \frac{\exp(\frac{1}{\beta}q_\theta(s,\cdot))}{Z(s)}\right)\right]
 $$
 
-
 However, an important question remains: how can we solve this optimization problem when it involves the intractable partition function $Z(s)$? To see this, recall that for two distributions p and q, the KL divergence takes the form $D_{KL}(p\|q) = \mathbb{E}_{x \sim p}[\log p(x) - \log q(x)]$. Let's denote the target Boltzmann distribution based on our current Q-estimate as:
 
 $$
@@ -443,7 +442,7 @@ $$
 \operatorname{minimize}_{\phi} \mathbb{E}_{s \sim \mu(s)}\mathbb{E}_{a \sim d(\cdot|s;\phi)}[\log d(a|s;\phi) - \frac{1}{\beta}q_\theta(s,a)]
 $$
 
-## Reparameterizating the Objective 
+## Reparameterizating the Objective
 
 One last challenge remains: $\phi$ appears in the distribution underlying the inner expectation, not just in the integrand. This setting departs from standard empirical risk minimization (ERM) in supervised learning where the distribution of the data (e.g., cats and dogs in image classification) remains fixed regardless of model parameters. Here, however, the "data" - our sampled actions - depends directly on the parameters $\phi$ we're trying to optimize.
 
@@ -463,14 +462,12 @@ $$
 \end{align*}
 $$
 
-
 Now $\phi$ appears only in the integrand through the function $f_\phi$, not in the sampling distribution. The objective involves two terms. First, the log-probability of our Gaussian policy has a simple closed form:
-
 
 $$
 \log d(f_\phi(s,\epsilon)|s;\phi) = -\frac{1}{2}\log(2\pi\sigma_\phi(s)^2) - \frac{(f_\phi(s,\epsilon)-\mu_\phi(s))^2}{2\sigma_\phi(s)^2}
 $$
-Second, $\phi$ enters through the composition of $q^\star$ with $f_\phi$: $q^\star(s,f_\phi(s,\epsilon))$. The chain rule for this composition would involve derivatives of both functions. While this might be problematic if the Q-factors were to come from outside of our control (ie. not in the computational graph), but since SAC learns it simultaneously with the policy, then we can simply compute all required derivatives through automatic differentiation. 
+Second, $\phi$ enters through the composition of $q^\star$ with $f_\phi$: $q^\star(s,f_\phi(s,\epsilon))$. The chain rule for this composition would involve derivatives of both functions. While this might be problematic if the Q-factors were to come from outside of our control (ie. not in the computational graph), but since SAC learns it simultaneously with the policy, then we can simply compute all required derivatives through automatic differentiation.
 
 This composition of policy and value functions - where $f_\phi$ enters as input to $q_\theta$ - directly parallels the structure we encountered in deterministic policy methods like NFQCA and DDPG. In those methods, we optimized:
 
@@ -485,7 +482,6 @@ $$
 $$
 
 Thus, rather than learning a single action for each state as in DDPG, we learn a function that transforms random noise into actions, explicitly parameterizing a distribution over actions while maintaining the same underlying principle of differentiating through composed policy and value functions.
-
 
 ```{prf:algorithm} Soft Actor-Critic
 :label: sac
@@ -577,9 +573,9 @@ $$
 \frac{d}{d\theta}J(\theta) = \int \frac{\partial}{\partial \theta}[f(x,\theta)p(x;\theta)]dx = \int \left[\frac{\partial f}{\partial \theta}p(x;\theta) + f(x,\theta)\frac{\partial p(x;\theta)}{\partial \theta}\right]dx
 $$
 
-The issue here is that while the first term could be numerically integrated using the Monte Carlo, the second one can't as it's not an expectation. 
+The issue here is that while the first term could be numerically integrated using the Monte Carlo, the second one can't as it's not an expectation.
 
-Would there be a way to transform our objective in such a way that the Monte Carlo estimator for the objective could be differentiated directly while ensuring that the resulting derivative is unbiased? We will see that there are two main solutions to that problem: by doing a change of measure, or a change of variables. 
+Would there be a way to transform our objective in such a way that the Monte Carlo estimator for the objective could be differentiated directly while ensuring that the resulting derivative is unbiased? We will see that there are two main solutions to that problem: by doing a change of measure, or a change of variables.
 
 ## Change of Measure: The Likelihood Ratio Method
 
@@ -608,7 +604,6 @@ $$
 \frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}\left[f(x,\theta)\frac{\partial \log p(x,\theta)}{\partial \theta} + \frac{\partial f(x,\theta)}{\partial \theta}\right]
 $$
 
-
 ## A Change of Variables Approach: The Reparameterization Trick
 
 An alternative approach eliminates the $\theta$-dependence in the sampling distribution by expressing $x$ through a deterministic transformation of the noise:
@@ -623,14 +618,13 @@ $$
 p(x;\theta) = q(g^{-1}(x,\theta))\left|\det\frac{\partial g^{-1}(x,\theta)}{\partial x}\right| = q(\epsilon)\left|\det\frac{\partial g(\epsilon,\theta)}{\partial \epsilon}\right|^{-1}
 $$
 
-
 For example, if we want to sample from any multivariate Gaussian distributions with covariance matrix $\Sigma$ and mean $\mu$, it suffices to be able to sample from a standard normal noise and compute the linear transformation:
 
 $$
 x = \mu + \Sigma^{1/2}\epsilon, \quad \epsilon \sim \mathcal{N}(0,I)
 $$
 
-where $\Sigma^{1/2}$ is the matrix square root obtained via Cholesky decomposition. In the univariate case, this transformation is simply: 
+where $\Sigma^{1/2}$ is the matrix square root obtained via Cholesky decomposition. In the univariate case, this transformation is simply:
 
 $$
 x = \mu + \sigma \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
@@ -638,11 +632,10 @@ $$
 
 where $\sigma = \sqrt{\sigma^2}$ is the standard deviation (square root of the variance).
 
-
-
 ### Common Examples of Reparameterization
 
 #### Bounded Intervals: The Truncated Normal
+
 When we need samples constrained to an interval $[a,b]$, we can use the truncated normal distribution. To sample from it, we transform uniform noise through the inverse cumulative distribution function (CDF) of the standard normal:
 
 $$
@@ -650,6 +643,7 @@ x = \Phi^{-1}(u\Phi(b) + (1-u)\Phi(a)), \quad u \sim \text{Uniform}(0,1)
 $$
 
 Here:
+
 - $\Phi(z) = \frac{1}{2}\left[1 + \text{erf}\left(\frac{z}{\sqrt{2}}\right)\right]$ is the CDF of the standard normal distribution
 - $\Phi^{-1}$ is its inverse (the quantile function)
 - $\text{erf}(z) = \frac{2}{\sqrt{\pi}}\int_0^z e^{-t^2}dt$ is the error function
@@ -657,6 +651,7 @@ Here:
 The resulting samples follow a normal distribution restricted to $[a,b]$, with the density properly normalized over this interval.
 
 #### Sampling from [0,1]: The Kumaraswamy Distribution
+
 When we need samples in the unit interval [0,1], a natural choice might be the Beta distribution. However, its inverse CDF doesn't have a closed form. Instead, we can use the Kumaraswamy distribution as a convenient approximation, which allows for a simple reparameterization:
 
 $$
@@ -664,8 +659,9 @@ x = (1-(1-u^{\alpha})^{1/\beta}), \quad u \sim \text{Uniform}(0,1)
 $$
 
 where:
+
 - $\alpha, \beta > 0$ are shape parameters that control the distribution
-- $\alpha$ determines the concentration around 0 
+- $\alpha$ determines the concentration around 0
 - $\beta$ determines the concentration around 1
 - The distribution is similar to Beta(α,β) but with analytically tractable CDF and inverse CDF
 
@@ -675,7 +671,7 @@ $$
 f(x; \alpha, \beta) = \alpha\beta x^{\alpha-1}(1-x^{\alpha})^{\beta-1}, \quad x \in [0,1]
 $$
 
-#### Discrete Actions: The Gumbel-Softmax 
+#### Discrete Actions: The Gumbel-Softmax
 
 When sampling from a categorical distribution with probabilities $\{\pi_i\}$, one approach uses $\text{Gumbel}(0,1)$ noise combined with the argmax of log-perturbed probabilities:
 
@@ -723,12 +719,11 @@ $$
 
 The resulting distribution over the probability simplex is called the Gumbel-Softmax (or Concrete) distribution. The temperature parameter $\tau$ controls the discreteness of our samples: smaller values give samples closer to one-hot vectors but with less stable gradients, while larger values give smoother gradients but more diffuse samples.
 
-
 ## Demonstration: Numerical Analysis of Gradient Estimators
 
-Let us examine the behavior of our three gradient estimators for the stochastic optimization objective: 
+Let us examine the behavior of our three gradient estimators for the stochastic optimization objective:
 
-$$J(\theta) = \mathbb{E}_{x \sim \mathcal{N}(\theta,1)}[x^2\theta]$$ 
+$$J(\theta) = \mathbb{E}_{x \sim \mathcal{N}(\theta,1)}[x^2\theta]$$
 
 To get an analytical expression for the derivative, first note that we can factor out $\theta$ to obtain $J(\theta) = \theta\mathbb{E}[x^2]$ where $x \sim \mathcal{N}(\theta,1)$. By definition of the variance, we know that $\text{Var}(x) = \mathbb{E}[x^2] - (\mathbb{E}[x])^2$, which we can rearrange to $\mathbb{E}[x^2] = \text{Var}(x) + (\mathbb{E}[x])^2$. Since $x \sim \mathcal{N}(\theta,1)$, we have $\text{Var}(x) = 1$ and $\mathbb{E}[x] = \theta$, therefore $\mathbb{E}[x^2] = 1 + \theta^2$. This gives us:
 
@@ -736,15 +731,15 @@ $$J(\theta) = \theta(1 + \theta^2)$$
 
 Now differentiating with respect to $\theta$ using the product rule yields:
 
-$$\frac{d}{d\theta}J(\theta) = 1 + 3\theta^2$$ 
+$$\frac{d}{d\theta}J(\theta) = 1 + 3\theta^2$$
 
 For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Carlo estimation with batch size 1000 and 1000 independent trials. Evaluating at $\theta = 1$ gives us $\frac{d}{d\theta}J(\theta)\big|_{\theta=1} = 1 + 3(1)^2 = 4$, which serves as our ground truth against which we compare our estimators:
 
-1.  First, we consider the naive estimator that incorrectly differentiates the Monte Carlo approximation:
+1. First, we consider the naive estimator that incorrectly differentiates the Monte Carlo approximation:
 
     $$\hat{g}_{\text{naive}}(\theta) = \frac{1}{N}\sum_{i=1}^N x_i^2$$
 
-    For $x \sim \mathcal{N}(1,1)$, we have $\mathbb{E}[x^2] = \theta^2 + 1 = 2.0$ and $\mathbb{E}[\hat{g}_{\text{naive}}] = 2.0$. We should therefore expect a bias of about $-2$ in our experiment. 
+    For $x \sim \mathcal{N}(1,1)$, we have $\mathbb{E}[x^2] = \theta^2 + 1 = 2.0$ and $\mathbb{E}[\hat{g}_{\text{naive}}] = 2.0$. We should therefore expect a bias of about $-2$ in our experiment.
 
 2. Then we compute the score function estimator:
 
@@ -758,16 +753,15 @@ For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Ca
 
     This estimator is also unbiased with $\mathbb{E}[\hat{g}_{\text{RT}}] = 4$.
 
-
 ```{code-cell} ipython3
 :tags: [hide-input]
 :load: code/lr_ipa.py
 
 ```
 
-The numerical experiments coroborate our theory. The naive estimator consistently underestimates the true gradient by 2.0, though it maintains a relatively small variance. This systematic bias would make it unsuitable for optimization despite its low variance. The score function estimator corrects this bias but introduces substantial variance. While unbiased, this estimator would require many samples to achieve reliable gradient estimates. Finally, the reparameterization trick achieves a much lower variance while remaining unbiased. While this experiment is for didactic purposes only, it reproduces what is commonly found in practice: that when applicable, the reparameterization estimator tends to perform better than the score function counterpart. 
+The numerical experiments coroborate our theory. The naive estimator consistently underestimates the true gradient by 2.0, though it maintains a relatively small variance. This systematic bias would make it unsuitable for optimization despite its low variance. The score function estimator corrects this bias but introduces substantial variance. While unbiased, this estimator would require many samples to achieve reliable gradient estimates. Finally, the reparameterization trick achieves a much lower variance while remaining unbiased. While this experiment is for didactic purposes only, it reproduces what is commonly found in practice: that when applicable, the reparameterization estimator tends to perform better than the score function counterpart.
 
-# Score Function Gradient Estimation in Reinforcement Learning 
+# Score Function Gradient Estimation in Reinforcement Learning
 
 Let $G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)$ be the sum of undiscounted rewards in a trajectory $\tau$. The stochastic optimization problem we face is to maximize:
 
@@ -775,7 +769,7 @@ $$
 J(\boldsymbol{w}) = \mathbb{E}_{\tau \sim p(\tau;\boldsymbol{w})}[G(\tau)]
 $$
 
-where $\tau = (s_0,a_0,s_1,a_1,...)$ is a trajectory and $G(\tau)$ is the total return. 
+where $\tau = (s_0,a_0,s_1,a_1,...)$ is a trajectory and $G(\tau)$ is the total return.
 Applying the score function estimator, we get:
 
 $$
@@ -801,7 +795,7 @@ $$
 
 This is a direct application of the score function estimator. However, we rarely use this form in practice and instead make several improvements to further reduce the variance.
 
-## Leveraging Conditional Independence 
+## Leveraging Conditional Independence
 
 Given the Markov property of the MDP, rewards $r_k$ for $k < t$ are conditionally independent of action $a_t$ given the history $h_t = (s_0,a_0,...,s_{t-1},a_{t-1},s_t)$. This allows us to only need to consider future rewards when computing policy gradients.
 
@@ -819,13 +813,13 @@ $$
 p(\tau) = p(s_0,...,s_t,a_0,...,a_{t-1})\cdot d(a_t|s_t;\boldsymbol{w})\cdot p(s_{t+1},...,s_T,a_{t+1},...,a_T|s_t,a_t)
 $$
 
-We can now re-write a single term of this summation as: 
+We can now re-write a single term of this summation as:
 
 $$
 \mathbb{E}_{\tau}\left[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=0}^{t-1} r_k\right] = \mathbb{E}_{s_{0:t},a_{0:t-1}}\left[\sum_{k=0}^{t-1} r_k \cdot \mathbb{E}_{a_t}\left[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\right]\right]
 $$
 
-The inner expectation is zero because 
+The inner expectation is zero because
 
 $$
 \begin{align*}
@@ -843,7 +837,7 @@ $$
 \nabla_{\boldsymbol{w}}J(\boldsymbol{w}) \approx \frac{1}{N}\sum_{i=1}^N\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t^{(i)}|s_t^{(i)};\boldsymbol{w})\sum_{k=t}^T r_k^{(i)}\right]
 $$
 
-The benefit of this estimator compared to the naive one is that it generally has less variance. More formally, we can show that this estimator arises from the application of a variance reduction technique known as the Extended Conditional Monte Carlo Method. 
+The benefit of this estimator compared to the naive one is that it generally has less variance. More formally, we can show that this estimator arises from the application of a variance reduction technique known as the Extended Conditional Monte Carlo Method.
 
 ## Variance Reduction via Control Variates
 
@@ -895,8 +889,7 @@ $$
 Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\sum_{k=t}^T r_k - v^{d_{\boldsymbol{w}}}(s_t)\right)
 $$
 
-
-In practice when implementing this estimator, we won't have access to the true value function. So as we did earlier for NFQCA or SAC, we commonly learn that value function simultaneously with the policy. Do do so, we could either using a fitted value approach, or even more simply just regress from states to sum of rewards to learn what Williams 1992 called a "baseline": 
+In practice when implementing this estimator, we won't have access to the true value function. So as we did earlier for NFQCA or SAC, we commonly learn that value function simultaneously with the policy. Do do so, we could either using a fitted value approach, or even more simply just regress from states to sum of rewards to learn what Williams 1992 called a "baseline":
 
 ```{prf:algorithm} Policy Gradient with Simple Baseline
 :label: policy-grad-baseline
@@ -915,8 +908,7 @@ In practice when implementing this estimator, we won't have access to the true v
 3. Return $\boldsymbol{w}$
 ```
 
-When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be: 
-
+When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be:
 
 ```{prf:algorithm} Policy Gradient with Optimal Control Variate and Mini-batches
 :label: policy-grad-cv-batch
@@ -946,8 +938,7 @@ When implementing this algorithm nowadays, we always using mini-batching to make
 3. Return $\boldsymbol{w}$
 ```
 
-## Generalized Advantage Estimator 
-
+## Generalized Advantage Estimator
 
 Given our control variate estimator with baseline $v(s)$, we have:
 
@@ -1006,11 +997,11 @@ A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = \sum_{l=0}^{\infty}(\gamma\lambda)^l\d
 $$
 
 This formulation allows us to trade off bias and variance through $\lambda$:
+
 - $\lambda=0$: one-step TD error (low variance, high bias)
 - $\lambda=1$: Monte Carlo estimate (high variance, low bias)
 
-
-The general GAE algorithm with mini-batches is the following: 
+The general GAE algorithm with mini-batches is the following:
 
 ```{prf:algorithm} Policy Gradient with GAE and Mini-batches
 :label: policy-grad-gae-batch
@@ -1048,7 +1039,7 @@ $$
 A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 $$
 
-The non-batched, purely online, GAE(0) algorithm then becomes: 
+The non-batched, purely online, GAE(0) algorithm then becomes:
 
 ```{prf:algorithm} Actor-Critic with TD(0)
 :label: actor-critic-td0
@@ -1068,6 +1059,7 @@ The non-batched, purely online, GAE(0) algorithm then becomes:
       5. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha_w \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\delta_t$
 3. Return $\boldsymbol{w}$
 ```
+
 Interestingly, this version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).
 
 ## The Policy Gradient Theorem
@@ -1090,7 +1082,7 @@ $$
 \frac{d\mathbf{v}(\mathbf{w})}{d\mathbf{w}} = -\left(\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{x}}\right)^{-1}\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{w}}
 $$
 
-Here we made it clear in our notation that the derivative must be evaluated at root $(\mathbf{v}(\mathbf{w}), \mathbf{w})$ of $F$. For the remaining of this derivation, we will drop this dependence to make notation more compact. 
+Here we made it clear in our notation that the derivative must be evaluated at root $(\mathbf{v}(\mathbf{w}), \mathbf{w})$ of $F$. For the remaining of this derivation, we will drop this dependence to make notation more compact.
 
 Applying this to our case with $F(\mathbf{v}, \mathbf{w}) = (\mathbf{I} - \gamma \mathbf{P}_d)\mathbf{v} - \mathbf{r}_d$:
 
@@ -1122,7 +1114,7 @@ $$
 \end{align*}
 $$
 
-Then taking the derivatives gives us: 
+Then taking the derivatives gives us:
 
 $$
 \begin{align*}
@@ -1141,7 +1133,6 @@ $$
 $$
 
 This is the policy gradient theorem, where $x_\alpha(s)$ is the discounted state visitation distribution and the term in parentheses is the state-action value function $q(s,a)$.
-
 
 ## Normalized Discounted State Visitation Distribution
 
@@ -1166,8 +1157,8 @@ $$
 \boldsymbol{\mu}_\alpha^\top = (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_d)^k
 $$
 
-We can then factor out the first term from this summation to obtain: 
-s   
+We can then factor out the first term from this summation to obtain:
+s
 \begin{align*}
 \boldsymbol{\mu}_\alpha^\top &= (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_d)^k \\
 &= (1-\gamma)\alpha^\top + (1-\gamma)\alpha^\top\sum_{k=1}^{\infty} (\gamma \mathbf{P}_d)^k \\
@@ -1175,13 +1166,11 @@ s
 &= (1-\gamma)\alpha^\top + \gamma\boldsymbol{\mu}_\alpha^\top \mathbf{P}_d
 \end{align*}
 
-
-The balance equation : 
+The balance equation :
 
 $$
 \boldsymbol{\mu}_\alpha^\top = (1-\gamma)\alpha^\top + \gamma\boldsymbol{\mu}_\alpha^\top \mathbf{P}_d
 $$
-
 
 shows that $\boldsymbol{\mu}_\alpha$ is a mixture distribution: with probability $1-\gamma$ you draw a state from the initial distribution $\alpha$ (reset), and with probability $\gamma$ you follow the policy dynamics $\mathbf{P}_d$ from the current state (continue). This interpretation directly connects to the geometric process: at each step you either terminate and resample from $\alpha$ (with probability $1-\gamma$) or continue following the policy (with probability $\gamma$).
 
@@ -1247,7 +1236,7 @@ print(np.bincount(samples) / len(samples))
 While the math shows that sampling from the discounted visitation distribution $\boldsymbol{\mu}_\alpha$ would give us unbiased policy gradient estimates, Thomas (2014) demonstrated that this implementation can be detrimental to performance in practice. The issue arises because terminating trajectories early (with probability $1-\gamma$) reduces the effective amount of data we collect from each trajectory. This early termination weakens the learning signal, as many trajectories don't reach meaningful terminal states or rewards.
 
 Therefore, in practice, we typically sample complete trajectories from the undiscounted process (i.e., run the policy until natural termination or a fixed horizon) while still using $\gamma$ in the advantage estimation. This approach preserves the full learning signal from each trajectory
-and has been empirically shown to lead to better performance. 
+and has been empirically shown to lead to better performance.
 
 This is one of several cases in RL where the theoretically optimal procedure differs from the best practical implementation.
 
@@ -1268,7 +1257,7 @@ $$
 To differentiate this objective, we need access to both a model of the dynamics and the reward function, as shown in the following expression:
 
 $$
-\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + 
+\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) +
 \gamma(\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w})] + \\\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})\int_{s'} \nabla_a p(s'|s,a)|_{a=d(s;\boldsymbol{w})}Q(s',d(s';\boldsymbol{w}))ds')]
 $$
 
@@ -1280,7 +1269,7 @@ $$
 \begin{align*}
 J^{\text{DPMB-R}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\xi}[r(s,d(s;\boldsymbol{w})) + \gamma Q(f(s,d(s;\boldsymbol{w}),\xi),d(f(s,d(s;\boldsymbol{w}),\xi);\boldsymbol{w}))]\\
 \nabla_{\boldsymbol{w}} J^{\text{DPMB-R}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\xi}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
-&\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) + 
+&\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) +
 \nabla_{s'} Q(s',d(s';\boldsymbol{w}))\nabla_{\boldsymbol{w}} f(s,d(s;\boldsymbol{w}),\xi)\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}))]
 \end{align*}
 $$
@@ -1307,7 +1296,7 @@ The questions of derivative estimators only arise with stochastic dynamics. For 
 $$
 \begin{align*}
 \nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = &\mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
-&\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) + 
+&\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) +
 \nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})\nabla_a f(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{s'} Q(s',d(s';\boldsymbol{w})))]
 \end{align*}
 $$
@@ -1315,7 +1304,6 @@ $$
 where $s' = f(s,d(s;\boldsymbol{w}))$ is the deterministic next state. Notice the resemblance between this expression and that obtained for $\nabla_{\boldsymbol{w}} J^{\text{DPMB-R}}$ above. They are essentially the same except that in the reparameterized case, the dynamics have made the dependence on the noise variable explicit and the outer expectation has been updated accordingly. This similarity arises because differentiation through reparameterized dynamics models is, in essence, backpropagation: it tracks the propagation of perturbations through a computation graph—which we refer to as a stochastic computation graph in this setting.
 
 Still under this simplified setting with deterministic policies and dynamics, we can extend the expression for the gradient through n-steps of model unroll, leading to:
-
 
 $$
 \begin{align*}
@@ -1335,7 +1323,6 @@ with base case $\nabla_{\boldsymbol{w}} s_0 = 0$ since the initial state does no
 At both ends of the spectrum, we have that for n=0, we fall back to the pure critic NFQCA-like approach, and for $n=\infty$, we don't bootstrap at all and are fully model-based without a critic. The pure model-based critic-free approach to optimization is what we may refer to as a backpropagation-based policy optimization (BPO).
 
 But just as backpropagation through RNNs or very deep networks can be challenging due to exploding and vanishing gradients, "vanilla" Backpropagation Policy Optimization (BPO) without a critic can severely suffer from the curse of horizon. This is because it essentially implements single shooting optimization. Using a critic can be an effective remedy to this problem, allowing us to better control the bias-variance tradeoff while preserving gradient information that would be lost with a more drastic truncated backpropagation approach.
-
 
 ## Stochastic Value Gradient (SVG)
 
@@ -1360,11 +1347,11 @@ where $\nabla_{\boldsymbol{w}} s_0 = 0$ and for $i \geq 0$:
 
 $$\nabla_{\boldsymbol{w}} s_{i+1} = \nabla_a f(s_i,a,\xi_i)|_{a=d(s_i,\epsilon_i;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_i,\epsilon_i;\boldsymbol{w}) + \nabla_{s_i} f(s_i,d(s_i,\epsilon_i;\boldsymbol{w}),\xi_i)\nabla_{\boldsymbol{w}} s_i$$
 
-While we could implement this expression for the gradient ourselves, this approach is much easier, less error-prone, and most likely better optimized for performance when using automatic differentiation. Given  a set of rollouts (for which we know the primitive noise variables), then we can compute the monte carlo objective: 
+While we could implement this expression for the gradient ourselves, this approach is much easier, less error-prone, and most likely better optimized for performance when using automatic differentiation. Given  a set of rollouts (for which we know the primitive noise variables), then we can compute the monte carlo objective:
 
 $$\hat{J}^{\text{SPMB-R-N}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M [\sum_{i=0}^{n-1} \gamma^i r(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w})) + \gamma^n Q(s_n^m,d(s_n^m,\epsilon_n^m;\boldsymbol{w}))]$$
 
-where the states are generated recursively using the known noise variables: starting with initial state $s_0^m$, each subsequent state is computed as $s_{i+1}^m = f(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w}),\xi_i^m)$. Thus,  a trajectory is completely determined by just the sequence of noise variables:$(\epsilon_0^m, \xi_0^m, \epsilon_1^m, \xi_1^m, ..., \epsilon_{n-1}^m, \xi_{n-1}^m, \epsilon_n^m)$ where $\epsilon_i^m$ are the action noise variables and $\xi_i^m$ are the dynamics noise variables. 
+where the states are generated recursively using the known noise variables: starting with initial state $s_0^m$, each subsequent state is computed as $s_{i+1}^m = f(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w}),\xi_i^m)$. Thus,  a trajectory is completely determined by just the sequence of noise variables:$(\epsilon_0^m, \xi_0^m, \epsilon_1^m, \xi_1^m, ..., \epsilon_{n-1}^m, \xi_{n-1}^m, \epsilon_n^m)$ where $\epsilon_i^m$ are the action noise variables and $\xi_i^m$ are the dynamics noise variables.
 
 The choice of unroll steps $n$ gives us precise control over the balance between model-based and critic-based components in our gradient estimator. At one extreme, setting $n = 0$ yields a purely model-free algorithm known as SVG(0) (Heess et al., 2015), which relies entirely on the critic for value estimation:
 
@@ -1431,6 +1418,7 @@ $$
    
 **return** $\boldsymbol{w}_n$
 ```
+
 ## Noise Inference in SVG
 
 The method we've presented so far assumes we have direct access to the noise variables $\epsilon$ and $\xi$ used to generate trajectories. This works well in the on-policy setting where we generate our own data. However, in off-policy scenarios where we receive externally generated trajectories, we need to infer these noise variables—a process the authors call noise inference.
@@ -1470,17 +1458,18 @@ z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
 $$
 
 This approach offers several advantages:
+
 1. More expressive policies and dynamics models capable of capturing multimodal distributions
 2. Exact likelihood computation through the change of variables formula (can be useful for computing the log prob terms in entropy regularization for example)
 3. Precise noise inference through the guaranteed invertibility of the flow
 
-As far as I know, this approach has not been explored in the literature. 
+As far as I know, this approach has not been explored in the literature.
 
-## DPG as a Special Case of SAC 
+## DPG as a Special Case of SAC
 
 At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.
 
-```{prf:proposition} Convergence of SAC to DPG 
+```{prf:proposition} Convergence of SAC to DPG
 Let $d(\cdot|s;\boldsymbol{w}_\alpha)$ be the optimal stochastic policy for SAC with temperature $\alpha$, and $d(s;\boldsymbol{w}_{DPG})$ be the optimal deterministic policy gradient solution. Under appropriate assumptions, as $\alpha \to 0$:
 
 $$
@@ -1548,9 +1537,9 @@ $$
 
 ````
 
-# Policy Optimization with a Trust Region 
+# Policy Optimization with a Trust Region
 
-Trust region methods in optimization approximate the objective function with a simpler local model within a region where we "trust" this approximation to be good. This brings about the need to define what we mean by a local region, and therefore to pick a geometry which suits our problem. 
+Trust region methods in optimization approximate the objective function with a simpler local model within a region where we "trust" this approximation to be good. This brings about the need to define what we mean by a local region, and therefore to pick a geometry which suits our problem.
 
 In standard optimization in the Euclidean space on $\mathbb{R}^n$, at each iteration $k$, we create a quadratic approximation around the current point $x_k$:
 

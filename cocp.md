@@ -13,7 +13,7 @@ kernelspec:
 
 # Continuous-Time Trajectory Optimization
 
-## State-Space Models 
+## State-Space Models
 
 We extend our focus from the discrete-time setting to trajectory optimization in continuous time. Such models are omnipresent in various branches of science and engineering, where the dynamics of physical, biological, or economic systems are often described in terms of continuous-time differential equations. Here, we consider models given by ordinary differential equations (ODEs). However, continuous-time optimal control methods also exist beyond ODEs; for example, using stochastic differential equations (SDEs) or partial differential equations (PDEs).
 
@@ -45,9 +45,9 @@ $$
 \text{Find } x(t) \text{ given } \dot{x}(t) = f(x(t), t) \text{ and } x(t_0) = x_0
 $$
 
-### Euler's Method 
+### Euler's Method
 
-The algorithm to solve this problem is, in its simplest form, a for loop which closely resembles the updates encountered in gradient descent (in fact, gradient descent can be derived from the gradient flow ODE, but that's another discussion). The so-called explicit Euler's method can be implemented as follow: 
+The algorithm to solve this problem is, in its simplest form, a for loop which closely resembles the updates encountered in gradient descent (in fact, gradient descent can be derived from the gradient flow ODE, but that's another discussion). The so-called explicit Euler's method can be implemented as follow:
 
 ````{prf:algorithm} Euler's method
 :label: euler-method
@@ -65,7 +65,7 @@ The algorithm to solve this problem is, in its simplest form, a for loop which c
 7. End While
 ````
 
-Consider the following simple dynamical system of a ballistic motion model, neglecting air resistance. The state of the system is described by two variables: $y(t)$: vertical position at time $t$ and $v(t)$, the vertical velocity at time $t$. The corresponding ODE is: 
+Consider the following simple dynamical system of a ballistic motion model, neglecting air resistance. The state of the system is described by two variables: $y(t)$: vertical position at time $t$ and $v(t)$, the vertical velocity at time $t$. The corresponding ODE is:
 
 $$
 \begin{aligned}
@@ -74,8 +74,8 @@ $$
 \end{aligned}
 $$
 
-where $g \approx 9.81 \text{ m/s}^2$ is the acceleration due to gravity. In our code, we use the initial conditions 
-$y(0) = 0 \text{ m}$ and $v(0) = v_0 \text{ m/s}$ where $v_0$ is the initial velocity (in this case, $v_0 = 20 \text{ m/s}$). 
+where $g \approx 9.81 \text{ m/s}^2$ is the acceleration due to gravity. In our code, we use the initial conditions
+$y(0) = 0 \text{ m}$ and $v(0) = v_0 \text{ m/s}$ where $v_0$ is the initial velocity (in this case, $v_0 = 20 \text{ m/s}$).
 The analytical solution to this system is:
 
 $$
@@ -93,7 +93,7 @@ $$
 x(t + h) \approx x(t) + h \frac{dx}{dt}(t) = x(t) + h f(x(t), t)
 $$
 
-Each step of the algorithm therefore involves approximating the function with a linear function of slope $f$ over the given interval $h$. 
+Each step of the algorithm therefore involves approximating the function with a linear function of slope $f$ over the given interval $h$.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -107,11 +107,11 @@ x(t + h) = x(t) + \int_t^{t+h} f(x(\tau), \tau) d\tau
 $$
 
 We then approximate the integral term with a box of width $h$ and height $f$, and therefore of area $h f$.
+
 ```{code-cell} ipython3
 :tags: [hide-input]
 :load: code/euler_integral_approximation_viz.py
 ```
-
 
 ### Implicit Euler's Method
 
@@ -144,11 +144,11 @@ The key difference in the Implicit Euler method is step 4, where we need to solv
 
 #### Stiff ODEs
 
-While the Implicit Euler method requires more computation per step, it often allows for larger step sizes and can provide better stability for certain types of problems, especially stiff ODEs. 
+While the Implicit Euler method requires more computation per step, it often allows for larger step sizes and can provide better stability for certain types of problems, especially stiff ODEs.
 
 Stiff ODEs are differential equations for which certain numerical methods for solving the equation are numerically unstable, unless the step size is taken to be extremely small. These ODEs typically involve multiple processes occurring at widely different rates. In a stiff problem, the fastest-changing component of the solution can make the numerical method unstable unless the step size is extremely small. However, such a small step size may lead to an impractical amount of computation to traverse the entire interval of interest.
 
-For example, consider a chemical reaction where some reactions occur very quickly while others occur much more slowly. The fast reactions quickly approach their equilibrium, but small perturbations in the slower reactions can cause rapid changes in the fast reactions. 
+For example, consider a chemical reaction where some reactions occur very quickly while others occur much more slowly. The fast reactions quickly approach their equilibrium, but small perturbations in the slower reactions can cause rapid changes in the fast reactions.
 
 A classic example of a stiff ODE is the Van der Pol oscillator with a large parameter. The Van der Pol equation is:
 
@@ -167,7 +167,7 @@ $$
 
 When $\mu$ is large (e.g., $\mu = 1000$), this system becomes stiff. The large $\mu$ causes rapid changes in $y$ when $x$ is near ±1, but slower changes elsewhere. This leads to a solution with sharp transitions followed by periods of gradual change.
 
-### Trapezoid Method 
+### Trapezoid Method
 
 The trapezoid method, also known as the trapezoidal rule, offers improved accuracy and stability compared to the simple Euler method. The name "trapezoid method" comes from the idea of using a trapezoid to approximate the integral term in the fundamental theorem of calculus. This leads to the following update rule:
 
@@ -218,8 +218,7 @@ x_{n+1} &= \frac{1}{2} \left( x_n + h f(x_n, t_n) \right) + \frac{1}{2} \left( x
 \end{aligned}
 $$
 
-This is precisely the update rule for the trapezoid method. Recall that the forward Euler method approximates the solution by extrapolating linearly using the slope at the beginning of the interval $[t_n, t_{n+1}] $. In contrast, the backward Euler method extrapolates linearly using the slope at the end of the interval. The trapezoid method, on the other hand, averages these two slopes. This averaging provides better approximation properties than either of the methods alone, offering both stability and accuracy. Note finally that unlike the forward or backward Euler methods, the trapezoid method is also symmetric in time. This means that if you were to reverse time and apply the method backward, you would get the same results (up to numerical precision). 
-
+This is precisely the update rule for the trapezoid method. Recall that the forward Euler method approximates the solution by extrapolating linearly using the slope at the beginning of the interval $[t_n, t_{n+1}] $. In contrast, the backward Euler method extrapolates linearly using the slope at the end of the interval. The trapezoid method, on the other hand, averages these two slopes. This averaging provides better approximation properties than either of the methods alone, offering both stability and accuracy. Note finally that unlike the forward or backward Euler methods, the trapezoid method is also symmetric in time. This means that if you were to reverse time and apply the method backward, you would get the same results (up to numerical precision).
 
 ### Trapezoidal Predictor-Corrector
 
@@ -249,21 +248,22 @@ This two-step process is similar to performing one iteration of Newton's method 
 :tags: [hide-input]
 :load: code/predictor_corrector_trapezoid_viz.py
 ```
+
 ## Collocation Methods
 
-The numerical integration methods we've discussed before are inherently sequential: given an initial state, we make a guess as to where the system might go over a small time interval. The accuracy of that guess depends on the numerical integration procedure being used and the information available locally. 
+The numerical integration methods we've discussed before are inherently sequential: given an initial state, we make a guess as to where the system might go over a small time interval. The accuracy of that guess depends on the numerical integration procedure being used and the information available locally.
 
 Collocation methods offer an alternative paradigm. Instead of solving the problem step by step, these methods aim to solve for the entire trajectory simultaneously by reformulating the differential equation into a system of algebraic equations. This approach involves a process of iterative refinements for the values of the discretized system, taking into account both local and global properties of the function.
 
-Sequential methods like Euler's or Runge-Kutta focus on evolving the system forward in time, starting from known initial conditions. They are simple to use for initial value problems but can accumulate errors over long time scales. Collocation methods, on the other hand, consider the whole time domain at once and tend to distribute errors more evenly across the domain. 
+Sequential methods like Euler's or Runge-Kutta focus on evolving the system forward in time, starting from known initial conditions. They are simple to use for initial value problems but can accumulate errors over long time scales. Collocation methods, on the other hand, consider the whole time domain at once and tend to distribute errors more evenly across the domain.
 
-This global view has some interesting implications. For one, collocation methods can handle both initial value and boundary value problems more naturally, which is particularly useful when you have path constraints throughout the entire integration interval. This property is especially valuable when solving continuous-time optimal control problems with such constraints: something which would otherwise be difficult to achieve with single-shooting methods. 
+This global view has some interesting implications. For one, collocation methods can handle both initial value and boundary value problems more naturally, which is particularly useful when you have path constraints throughout the entire integration interval. This property is especially valuable when solving continuous-time optimal control problems with such constraints: something which would otherwise be difficult to achieve with single-shooting methods.
 
 However, solving for all time points simultaneously can be computationally intensive. It involves a tradeoff between overall accuracy, especially for long-time integrations or sensitive systems, but at the cost of increased computational complexity. Despite this, the ability to handle complex constraints and achieve more robust solutions often makes collocation methods the preferred choice for solving sophisticated COCPs in fields such as aerospace, robotics, and process control.
 
 ### Quick Primer on Polynomials
 
-Collocation methods are based on polynomial approximation theory. Therefore, the first step in developing collocation-based optimal control techniques is to review the fundamentals of polynomial functions. 
+Collocation methods are based on polynomial approximation theory. Therefore, the first step in developing collocation-based optimal control techniques is to review the fundamentals of polynomial functions.
 
 Polynomials are typically introduced through their standard form:
 
@@ -271,7 +271,7 @@ $$
 p(t) = a_n t^n + a_{n-1} t^{n-1} + \cdots + a_1 t + a_0
 $$
 
-In this expression, the $a_i$ are coefficients which linearly combine the powers of $t$ to represent a function. The set of functions $\{ 1, t, t^2, t^3, \ldots, t^n \}$ used in the standard polynomial representation is called the **monomial basis**. 
+In this expression, the $a_i$ are coefficients which linearly combine the powers of $t$ to represent a function. The set of functions $\{ 1, t, t^2, t^3, \ldots, t^n \}$ used in the standard polynomial representation is called the **monomial basis**.
 
 In linear algebra, a basis is a set of vectors in a vector space such that any vector in the space can be uniquely represented as a linear combination of these basis vectors. In the same way, a **polynomial basis** is such that any function $ f(x) $ (within the function space) to be expressed as:
 
@@ -283,11 +283,11 @@ where the coefficients $ c_k $ are generally determined by solving a system of e
 
 Just as vectors can be represented in different coordinate systems (bases), functions can also be expressed using various polynomial bases. However, the ability to apply a change of basis does not imply that all types of polynomials are equivalent from a practical standpoint. In practice, our choice of polynomial basis is dictated by considerations of efficiency, accuracy, and stability when approximating a function.
 
-For instance, despite the monomial basis being easy to understand and implement, it often performs poorly in practice due to numerical instability. This instability arises as its coefficients take on large values: an ill-conditioning problem. The following kinds of polynomial often remedy this issues. 
+For instance, despite the monomial basis being easy to understand and implement, it often performs poorly in practice due to numerical instability. This instability arises as its coefficients take on large values: an ill-conditioning problem. The following kinds of polynomial often remedy this issues.
 
-#### Orthogonal Polynomials 
+#### Orthogonal Polynomials
 
-An **orthogonal polynomial basis** is a set of polynomials that are not only orthogonal to each other but also form a complete basis for a certain space of functions. This means that any function within that space can be represented as a linear combination of these polynomials. 
+An **orthogonal polynomial basis** is a set of polynomials that are not only orthogonal to each other but also form a complete basis for a certain space of functions. This means that any function within that space can be represented as a linear combination of these polynomials.
 
 More precisely, let $ \{ p_0(x), p_1(x), p_2(x), \dots \} $ be a sequence of polynomials where each $ p_n(x) $ is a polynomial of degree $ n $. We say that this set forms an orthogonal polynomial basis if any polynomial $ q(x) $ of degree $ n $ or less can be uniquely expressed as a linear combination of $ \{ p_0(x), p_1(x), \dots, p_n(x) \} $. Furthermore, the orthogonality property means that for any $ i \neq j $:
 
@@ -295,22 +295,22 @@ $$
 \langle p_i, p_j \rangle = \int_a^b p_i(x) p_j(x) w(x) \, dx = 0.
 $$
 
-for some weight function $ w(x) $ over a given interval of orthogonality $ [a, b] $. 
+for some weight function $ w(x) $ over a given interval of orthogonality $ [a, b] $.
 
-The orthogonality property allows to simplify the computation of the coefficients involved in the polynomial representation of a function. At a high level, what happens is that when taking the inner product of $ f(x) $ with each basis polynomial, $ p_k(x) $ isolates the corresponding coefficient $ c_k $, which can be found to be: 
+The orthogonality property allows to simplify the computation of the coefficients involved in the polynomial representation of a function. At a high level, what happens is that when taking the inner product of $ f(x) $ with each basis polynomial, $ p_k(x) $ isolates the corresponding coefficient $ c_k $, which can be found to be:
 
 $$
 c_k = \frac{\langle f, p_k \rangle}{\langle p_k, p_k \rangle} = \frac{\int_a^b f(x) p_k(x) w(x) \, dx}{\int_a^b p_k(x)^2 w(x) \, dx}.
 $$
 
-Here are some examples of the most common orthogonal polynomials used in practice. 
+Here are some examples of the most common orthogonal polynomials used in practice.
 
 ##### Legendre Polynomials
 
 Legendre polynomials $ \{ P_n(x) \} $ are defined on the interval $[-1, 1]$ and satisfy the orthogonality condition:
 
 $$
-\int_{-1}^{1} P_n(x) P_m(x) \, dx = 
+\int_{-1}^{1} P_n(x) P_m(x) \, dx =
 \begin{cases}
 0 & \text{if } n \neq m, \\
 \frac{2}{2n + 1} & \text{if } n = m.
@@ -329,7 +329,7 @@ $$
 P_0(x) = 1, \quad P_1(x) = x.
 $$
 
-The first four Legendre polynomials resulting from this recurrence are the following: 
+The first four Legendre polynomials resulting from this recurrence are the following:
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -385,7 +385,7 @@ for n in range(4):
 There are two types of Chebyshev polynomials: **Chebyshev polynomials of the first kind**, $ \{ T_n(x) \} $, and **Chebyshev polynomials of the second kind**, $ \{ U_n(x) \} $. We typically focus on the first kind. They are defined on the interval $[-1, 1]$ and satisfy the orthogonality condition:
 
 $$
-\int_{-1}^{1} \frac{T_n(x) T_m(x)}{\sqrt{1 - x^2}} \, dx = 
+\int_{-1}^{1} \frac{T_n(x) T_m(x)}{\sqrt{1 - x^2}} \, dx =
 \begin{cases}
 0 & \text{if } n \neq m, \\
 \frac{\pi}{2} & \text{if } n = m \neq 0, \\
@@ -405,12 +405,11 @@ $$
 T_0(x) = 1, \quad T_1(x) = x.
 $$
 
-Remarkably, this recurrence relation also admits an explicit formula: 
+Remarkably, this recurrence relation also admits an explicit formula:
 
 $$
 T_n(x) = \cos(n \cos^{-1}(x)).
 $$
-
 
 Let's now implement it in Python:
 
@@ -444,7 +443,7 @@ for n in range(4):
 Hermite polynomials $ \{ H_n(x) \} $ are defined on the entire real line and are orthogonal with respect to the weight function $ w(x) = e^{-x^2} $. They satisfy the orthogonality condition:
 
 $$
-\int_{-\infty}^{\infty} H_n(x) H_m(x) e^{-x^2} \, dx = 
+\int_{-\infty}^{\infty} H_n(x) H_m(x) e^{-x^2} \, dx =
 \begin{cases}
 0 & \text{if } n \neq m, \\
 2^n n! \sqrt{\pi} & \text{if } n = m.
@@ -463,7 +462,7 @@ $$
 H_0(x) = 1, \quad H_1(x) = 2x.
 $$
 
-The following code computes the coefficients of the first four Hermite polynomials: 
+The following code computes the coefficients of the first four Hermite polynomials:
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -540,11 +539,11 @@ $$
 \sum_{i=0}^{N} c_i \phi_i(t_0) = y_0.
 $$
 
-The collocation conditions and IVP condition are combined together to form a root-finding problem, which we can generically solve numerically using Newton's method. 
+The collocation conditions and IVP condition are combined together to form a root-finding problem, which we can generically solve numerically using Newton's method.
 
 ### Common Numerical Integration Techniques as Collocation Methods
 
-Many common numerical integration techniques can be viewed as special cases of collocation methods. 
+Many common numerical integration techniques can be viewed as special cases of collocation methods.
 While the general collocation method we discussed earlier applies to the entire interval $[t_0, t_f]$, many numerical integration techniques can be viewed as collocation methods applied locally, step by step.
 
 In practical numerical integration, we often divide the full interval $[t_0, t_f]$ into smaller subintervals or steps. In general, this allows us to user simpler basis functions thereby reducing computational complexity, and gives us more flexibility in dynamically ajusting the step size using local error estimates. When we apply collocation locally, we're essentially using the collocation method to "step" from $t_n$ to $t_{n+1}$. As we did, earlier we still apply the following three steps:
@@ -553,7 +552,7 @@ In practical numerical integration, we often divide the full interval $[t_0, t_f
 2. We select collocation points within this interval.
 3. We enforce the ODE at these points to determine the coefficients of our basis function.
 
-We can make this idea clearer by re-deriving some of the numerical integration methods seen before using this perspective. 
+We can make this idea clearer by re-deriving some of the numerical integration methods seen before using this perspective.
 
 #### Explicit Euler Method
 
@@ -696,8 +695,7 @@ $$
 \phi_i(t) = t^i, \quad i = 0, 1, \ldots, N
 $$
 
-We select $N$ equally spaced points $\{t_1, \ldots, t_N\}$ in $[0, 2]$ as collocation points. 
-
+We select $N$ equally spaced points $\{t_1, \ldots, t_N\}$ in $[0, 2]$ as collocation points.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -712,6 +710,7 @@ As studied earlier in the discrete-time setting, we consider three variants of t
 :gutter: 1
 
 :::{grid-item}
+
 ````{prf:definition} Mayer Problem
 $$
 \begin{aligned}
@@ -725,9 +724,11 @@ $$
 $$
 
 ````
+
 :::
 
 :::{grid-item}
+
 ````{prf:definition} Lagrange Problem
 $$
 \begin{aligned}
@@ -741,9 +742,11 @@ $$
 $$
 
 ````
+
 :::
 
 :::{grid-item}
+
 ````{prf:definition} Bolza Problem
 $$
 \begin{aligned}
@@ -757,9 +760,9 @@ $$
 $$
 
 ````
+
 :::
 ::::
-
 
 In these formulations, the additional constraints are:
 
@@ -767,9 +770,9 @@ In these formulations, the additional constraints are:
 - State bounds: $\mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}}$, which specify the lower and upper bounds on the state variables.
 - Control bounds: $\mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}}$, which specify the lower and upper bounds on the control inputs.
 
-Furthermore, we may also encounter variations of the above problems under the assumption that horizon is infinite. For example: 
+Furthermore, we may also encounter variations of the above problems under the assumption that horizon is infinite. For example:
 
-````{prf:definition} Infinite-Horizon Trajectory Optimization 
+````{prf:definition} Infinite-Horizon Trajectory Optimization
 \begin{align*}
     &\text{minimize} \quad \int_{t_0}^{\infty} e^{-\rho t} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
     &\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
@@ -779,15 +782,17 @@ Furthermore, we may also encounter variations of the above problems under the as
     &\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
 \end{align*}
 ````
+
 ````{margin}
 ```{note}
 In optimal control problems, the use of an **exponential discount rate** $ e^{-\rho t} $ is favored over a discrete-time **discount factor** $ \gamma $ (commonly used in reinforcement learning). For small time steps $ \Delta t $, we can approximate the exponential discounting as
      $e^{-\rho \Delta t} \approx 1 - \rho \Delta t.$ Therefore, as $ \Delta t \to 0 $, the continuous discount factor $ e^{-\rho t} $ corresponds to a discrete discount factor $ \gamma = e^{-\rho \Delta t} \approx 1 - \rho \Delta t $. 
 ```
 ````
-In this formulation, the term $e^{-\rho t}$ is a discount factor that exponentially decreases the importance of future costs relative to the present. The parameter $ \rho > 0$ is the discount rate. A larger value of $ \rho $ places more emphasis on the immediate cost and diminishes the impact of future costs. In infinite-horizon problems, the integral of the cost function $ \int_{t_0}^{\infty} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt $ could potentially diverge because the cost accumulates over an infinite time period. Introducing the exponential term $ e^{-\rho t} $ guarantees that the integral converges as long as $ c(\mathbf{x}(t), \mathbf{u}(t)) $ grows at a slower rate than $ e^{\rho t} $. 
 
-## Transforming Lagrange and Bolza Problems to Mayer 
+In this formulation, the term $e^{-\rho t}$ is a discount factor that exponentially decreases the importance of future costs relative to the present. The parameter $ \rho > 0$ is the discount rate. A larger value of $ \rho $ places more emphasis on the immediate cost and diminishes the impact of future costs. In infinite-horizon problems, the integral of the cost function $ \int_{t_0}^{\infty} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt $ could potentially diverge because the cost accumulates over an infinite time period. Introducing the exponential term $ e^{-\rho t} $ guarantees that the integral converges as long as $ c(\mathbf{x}(t), \mathbf{u}(t)) $ grows at a slower rate than $ e^{\rho t} $.
+
+## Transforming Lagrange and Bolza Problems to Mayer
 
 Recall that, according to the fundamental theorem of calculus, solving an initial value problem (IVP) or using a quadrature method to evaluate an integral are essentially two approaches to the same problem. Similarly, just as we can convert discrete-time Lagrange or Bolza optimal control problems to the Mayer form by keeping a running sum of the cost, we can extend this idea to continuous time. This is done by introducing an augmented state space that includes the accumulated cost up to a given time as part of the integral term. If our original system is represented by $\mathbf{f}$, we construct an augmented system $\tilde{\mathbf{f}}$ as follows:
 
@@ -811,9 +816,10 @@ c(\mathbf{x}, \mathbf{u})
 \end{bmatrix}
 $$
 
-The integral cost is now obtained via $z(t_f)$, which is added with the terminal cost $c(\mathbf{x}(t_f))$ to recover the value of the original objective in the Bolza problem. 
+The integral cost is now obtained via $z(t_f)$, which is added with the terminal cost $c(\mathbf{x}(t_f))$ to recover the value of the original objective in the Bolza problem.
 
 ## Example Problems
+
 ### Inverted Pendulum
 
 The inverted pendulum is a classic problem in control theory and robotics that demonstrates the challenge of stabilizing a dynamic system that is inherently unstable. The objective is to keep a pendulum balanced in the upright position by applying a control force, typically at its base. This setup is analogous to balancing a broomstick on your finger: any deviation from the vertical position will cause the system to tip over unless you actively counteract it with appropriate control actions.
@@ -839,6 +845,7 @@ The evolution of these two varibles is governed by the following ordinary differ
 \end{equation}
 
 where:
+
 - $m$ is the mass of the pendulum
 - $g$ is the acceleration due to gravity
 - $l$ is the length of the pendulum
@@ -847,7 +854,7 @@ where:
 - $u(t)$ is the control force applied at the base
 - $y(t) = \theta(t)$ is the measured output (the pendulum's angle)
 
-We expect that when no control is applied to the system, the rod should be falling down when started from the upright position. 
+We expect that when no control is applied to the system, the rod should be falling down when started from the upright position.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -868,9 +875,9 @@ However, the equations of motion implemented in the Gym environment are differen
 
 Compared to our simplified model, the Gym implementation makes the following additional assumptions:
 
-1. It omits the term $\frac{\gamma}{J_t} \dot{\theta}(t)$, which represents damping or air resistance. This means that it assumes an idealized pendulum that doesn't naturally slow down over time. 
+1. It omits the term $\frac{\gamma}{J_t} \dot{\theta}(t)$, which represents damping or air resistance. This means that it assumes an idealized pendulum that doesn't naturally slow down over time.
 
-2. It uses $ml^2$ instead of $J_t = J + ml^2$, which assumes that all mass is concentrated at the pendulum's end (like a point mass on a massless rod), rather than accounting for mass distribution along the pendulum. 
+2. It uses $ml^2$ instead of $J_t = J + ml^2$, which assumes that all mass is concentrated at the pendulum's end (like a point mass on a massless rod), rather than accounting for mass distribution along the pendulum.
 
 3. The control input $u$ is applied directly, without a $\cos \theta(t)$ term, which means that the applied torque has the same effect regardless of the pendulum's position, rather than varying with angle. For example, imagine trying to push a door open. When the door is almost closed (pendulum near vertical), a small push perpendicular to the door (analogous to our control input) can easily start it moving. However, when the door is already wide open (pendulum horizontal), the same push has little effect on the door's angle. In a more detailed model, this would be captured by the $\cos \theta(t)$ term, which is maximum when the pendulum is vertical ($\cos 0° = 1$) and zero when horizontal ($\cos 90° = 0$).
 
@@ -890,7 +897,7 @@ u &= \max(\min(u, u_{max}), -u_{max}) \\
 \dot{\theta} &= \max(\min(\dot{\theta}, \dot{\theta}_{max}), -\dot{\theta}_{max})
 \end{align*}
 
-Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting the [`step`](https://github.com/openai/gym/blob/dcd185843a62953e27c2d54dc8c2d647d604b635/gym/envs/classic_control/pendulum.py#L133) function, we find that the dynamics are discretized using forward Euler under a fixed step size of $h=0.0.5$. Overall, the discrete-time trajectory optimization problem implemented in Gym is the following: 
+Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting the [`step`](https://github.com/openai/gym/blob/dcd185843a62953e27c2d54dc8c2d647d604b635/gym/envs/classic_control/pendulum.py#L133) function, we find that the dynamics are discretized using forward Euler under a fixed step size of $h=0.0.5$. Overall, the discrete-time trajectory optimization problem implemented in Gym is the following:
 \begin{align*}
 \min_{u_k} \quad & J = \sum_{k=0}^{N-1} c(\theta_k, \dot{\theta}_k, u_k) \\
 \text{subject to:} \quad & \theta_{k+1} = \theta_k + \dot{\theta}_k \cdot h \\
@@ -911,11 +918,9 @@ Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting 
 \text{given:} \quad      & \theta(0) = \theta_0, \quad \dot{\theta}(0) = \dot{\theta}_0, \quad T = 10 \text{ seconds}
 \end{align*}
 
-
-### Heat Exchanger 
+### Heat Exchanger
 
 ![Heat Exchanger](_static/heat_exchanger.svg)
-
 
 We are considering a system where fluid flows through a tube, and the goal is to control the temperature of the fluid by adjusting the temperature of the tube's wall over time. The wall temperature, denoted as $ T_w(t) $, can be changed as a function of time, but it remains the same along the length of the tube. On the other hand, the temperature of the fluid inside the tube, $ T(z, t) $, depends both on its position along the tube $ z $ and on time $ t $. It evolves according to the following partial differential equation:
 
@@ -924,6 +929,7 @@ $$
 $$
 
 where we have:
+
 - $ v $: the average speed of the fluid moving through the tube,
 - $ h $: how easily heat transfers from the wall to the fluid,
 - $ \rho $ and $ C_p $: the fluid’s density and heat capacity.
@@ -946,7 +952,6 @@ $$
 T_w(t) \leq T_{\max}
 $$
 
-
 ### Nuclear Reactor
 
 ![Nuclear Reactor Diagram](_static/nuclear_reactor.svg)
@@ -961,6 +966,7 @@ The reaction kinetics can be modeled using a system of ordinary differential equ
 \end{align*}
 
 where:
+
 - $x(t)$: concentration of neutrons at time $t$
 - $y(t)$: concentration of precursors at time $t$
 - $t$: time
@@ -989,7 +995,7 @@ and the constraint $|u(t)| \leq u_\mathrm{max}$
 
 ### Chemotherapy
 
-Chemotherapy uses drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem. 
+Chemotherapy uses drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem.
 
 The drug concentration $y_1(t)$ and the number of immune cells $y_2(t)$, healthy cells $y_3(t)$, and cancer cells $y_4(t)$ in an organ at any time $t$ during chemotherapy can be modeled using a system of ordinary differential equations:
 
@@ -1001,6 +1007,7 @@ The drug concentration $y_1(t)$ and the number of immune cells $y_2(t)$, healthy
 \end{align*}
 
 where:
+
 - $y_1(t)$: drug concentration in the organ at time $t$
 - $y_2(t)$: number of immune cells in the organ at time $t$
 - $y_3(t)$: number of healthy cells in the organ at time $t$
@@ -1020,6 +1027,7 @@ I = y_4(t_\mathrm{f}) + \int_0^{t_\mathrm{f}} u(t) \, \mathrm{d}t
 subject to the system dynamics, initial conditions, and the constraint $u(t) \geq 0$.
 
 Additional constraints may include:
+
 - Maintaining a minimum number of healthy cells during treatment:
   \begin{equation*}
   y_3(t) \geq y_{3,\min}
@@ -1029,7 +1037,7 @@ Additional constraints may include:
   u(t) \leq u_\max
   \end{equation*}
 
-### Government Corruption 
+### Government Corruption
 
 In this model from Feichtinger and Wirl (1994), we aim to understand the incentives for politicians to engage in corrupt activities or to combat corruption. The model considers a politician's popularity as a dynamic process that is influenced by the public's memory of recent and past corruption. The objective is to find conditions under which self-interested politicians would choose to be honest or dishonest.
 
@@ -1091,6 +1099,7 @@ Evaluating the integral is essentially a problem of numerical integration, which
 Single shooting under a direct transcription approach amounts to expressing the equality constraints of the original problem about the ODE dynamics by a time-discretized counterpart unrolled in time. This method essentially "backpropagates" through the numerical integration code that implements the system.
 
 #### Mayer Problem
+
 Consider a problem in Mayer form:
 
 $$
@@ -1122,7 +1131,7 @@ Here, $\Phi(\boldsymbol{\theta}; \mathbf{x}_0)$ represents the final state $\mat
 This reformulation transforms the infinite-dimensional optimal control problem into a finite-dimensional nonlinear programming (NLP) problem. The decision variables are now the parameters $\boldsymbol{\theta}$ of the control function, subject to bound constraints at each discretization point. The dynamic constraints are implicitly satisfied through the integration process embedded in the objective function.
 However, ensuring that bound constraints on the controls are satisfied by a choice of parameters is more challenging than in the "tabular" case, i.e., when we are not using a control parameterization. This makes it more difficult to directly project or clip the parameters to satisfy the control bounds through a simple projected gradient descent step.
 
-#### Bolza Problem 
+#### Bolza Problem
 
 Let's now address the numerical challenge that comes with the evaluation of the integral term in a Lagrange or Bolza-type problem:
 
@@ -1136,7 +1145,7 @@ $$
 \end{aligned}
 $$
 
-We can first start with the usual trick by which we transform the above Bolza problem into Mayer form by creating an augmented system and solving the following COCP: 
+We can first start with the usual trick by which we transform the above Bolza problem into Mayer form by creating an augmented system and solving the following COCP:
 
 $$
 \begin{aligned}
@@ -1152,7 +1161,7 @@ c(\mathbf{x}, \mathbf{u})
 \end{aligned}
 $$
 
-We can then proceed to transcribe this problem via single-shooting just like we did above for Mayer problems: 
+We can then proceed to transcribe this problem via single-shooting just like we did above for Mayer problems:
 
 $$
 \begin{aligned}
@@ -1166,6 +1175,7 @@ $$
 where the $\tilde \Psi$ denote a step of the underlying numerical integration method (eg. Euler, RK4, etc.) over the augmented system $\tilde{\mathbf{f}}$.
 
 #### Decoupled Integration
+
 The transformation of the Bolza problem into a Mayer problem has a side effect that it couples the numerical integration scheme used for the dynamics and the one for the objective itself. It certainly simplifies our implementation, but at the cost of less flexibility in the approximation of the problem as we will see below.
 We could for example directly apply a numerical quadrature method (say gaussian or simpson quadrature) and RKH4, resulting in the following transcribed (single shooted) problem:
 
@@ -1198,7 +1208,7 @@ $$
 
 $$
 w_{2i-1} = w_{2i} = \frac{t_f - t_0}{2N} \text{ for } i = 1, \ldots, N
-$$ 
+$$
 
 The evaluation points $t_i$ are not equally spaced in this case, but are determined by the Gaussian quadrature formula within each subinterval.
 
@@ -1206,8 +1216,7 @@ In all these cases, the states at the quadrature points are obtained from the in
 
 For instance, when using Gaussian quadrature, the evaluation points are generally not equally spaced and won't coincide with the uniform time grid typically used for RK4 integration. This means we might need to integrate the dynamics to intermediate points between our main time steps, thereby increasing the number of integration steps required. Similarly, for Simpson's rule or other higher-order methods, we might need state values at points where we haven't directly computed them during our primary integration process.
 
-To mitigate this issue, one could align the integration grid with the quadrature points, but this might compromise the accuracy of the dynamics integration if the resulting grid is not sufficiently fine. Alternatively, one could use interpolation methods to estimate the state at quadrature points, but this introduces additional approximation errors. 
-
+To mitigate this issue, one could align the integration grid with the quadrature points, but this might compromise the accuracy of the dynamics integration if the resulting grid is not sufficiently fine. Alternatively, one could use interpolation methods to estimate the state at quadrature points, but this introduces additional approximation errors.
 
 #### Example: Life-Cycle Model
 
@@ -1221,13 +1230,14 @@ $$
 \end{align*}
 $$
 
-where $[0, T]$ is the lifespan of an individual. In this model, we typically use a Constant Relative Risk Aversion (CRRA) utility function, 
+where $[0, T]$ is the lifespan of an individual. In this model, we typically use a Constant Relative Risk Aversion (CRRA) utility function,
 $u(c) = \frac{c^{1-\gamma}}{1-\gamma}$, where larger values of the parameter $\gamma$ encode a stronger preference for a stable consumption.
 
 The budget constraint, $\dot{A}(t) = f(A(t)) + w(t) - c(t)$, describes the evolution of assets, $A(t)$. Here, $f(A(t))$ represents returns on investments, $w(t)$ is wage income, and $c(t)$ is consumption. The asset return function $f(A) = 0.03A$ models a constant 3\% return on investments.
 In our specific implementation, the choice of the wage function $w(t) = 1 + 0.1t - 0.001t^2$ is meant to represent a career trajectory where income rises initially and then falls. The boundary conditions $A(0) = A(T) = 0$ finally encodes the fact that individuals start and end life with zero assets (ie. no inheritances).
 
 ##### Direct Single Shooting Solution
+
 To solve this problem numerically, we parameterize the entire consumption path as a cubic polynomial turning our original problem into:
 
 $$
@@ -1239,12 +1249,12 @@ $$
 \end{align*}
 $$
 
-We then transcribe the problem using a fourth-order Runge-Kutta method (RK4) to simulate the assets dynamics and 
-we discretize integral cost function using: 
+We then transcribe the problem using a fourth-order Runge-Kutta method (RK4) to simulate the assets dynamics and
+we discretize integral cost function using:
 
    $$\int_0^T e^{-\rho t} u(c(t)) dt \approx \sum_{i=0}^{N-1} e^{-\rho t_i} u(c(t_i)) \Delta t$$
 
-Finally, we explicitly enforce the boundary condition $A(T) = 0$ as an equality constraint in our optimization problem, which we solve using `scipy.optimize.minimize`. 
+Finally, we explicitly enforce the boundary condition $A(T) = 0$ as an equality constraint in our optimization problem, which we solve using `scipy.optimize.minimize`.
 When using single shooting to eliminate the dynamics constraints, we the obtain the following NLP:
 
 $$
@@ -1277,7 +1287,7 @@ $$
 
 ### Direct Multiple Shooting
 
-While direct single shooting is conceptually simple, it can suffer from numerical instabilities, especially for long time horizons or highly nonlinear systems. This phenomenon is akin to the vanishing and exploding gradient problem in deep learning (for example when unrolling an RNN over a long sequence). 
+While direct single shooting is conceptually simple, it can suffer from numerical instabilities, especially for long time horizons or highly nonlinear systems. This phenomenon is akin to the vanishing and exploding gradient problem in deep learning (for example when unrolling an RNN over a long sequence).
 
 Multiple shooting addresses these issues by breaking the time interval into multiple segments, treated individually indivual single shooting problems, and stiched back together via equality constraints. Not only this approach improves numerical stability but it also allows for easier incorporation of path constraints (which was otherwise difficult to do with single shooting). Another important benefit is that each subproblem can be solved in parallel, which can be beneficial from a computational point of view.
 
@@ -1310,8 +1320,6 @@ $$
 $$
 
 Here $\Phi_i(\boldsymbol{\theta}; \mathbf{s}_i)$ represents the final state obtained by integrating the system dynamics from $\mathbf{s}_i$ over the interval $[t_i, t_{i+1}]$ using the parameterized control $\mathbf{u}(t; \boldsymbol{\theta})$. The equality constraints $\mathbf{s}_{i+1} = \Phi_i(\boldsymbol{\theta}; \mathbf{s}_i)$ ensure continuity of the state trajectory across the subintervals. These are often called "defect constraints" or "matching conditions".
-
-
 
 ### Direct Collocation
 
@@ -1348,8 +1356,8 @@ Here, $h_i = t_{i+1} - t_i$ is the length of the i-th interval, $\mathbf{x}_i^j$
 
 This formulation offers several advantages:
 
-- It provides a discretized counterpart to the original continuous-time problem. 
-- It allows for path constraints on both the states and controls. 
+- It provides a discretized counterpart to the original continuous-time problem.
+- It allows for path constraints on both the states and controls.
 - It often results in better numerical conditioning compared to shooting methods.
 - It allows facilitates the use of adaptive mesh refinement methods (which we don't cover here).
 
@@ -1387,7 +1395,6 @@ This approximation matches the Euler integration scheme used for the dynamics:
 
 $$\int_{t_i}^{t_{i+1}} \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t), t) dt \approx h_i \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i)$$
 
-
 After solving the optimization problem, we obtain discrete values for the control inputs $\mathbf{u}_i$ at each time point $t_i$. To reconstruct the continuous control function $\mathbf{u}(t)$, we use linear interpolation between these points. For $t \in [t_i, t{i+1}]$, we can express $\mathbf{u}(t)$ as:
 
 $$\mathbf{u}(t) = \mathbf{u}_i + \frac{\mathbf{u}_{i+1} - \mathbf{u}_i}{h_i}(t - t_i)$$
@@ -1422,7 +1429,7 @@ $$\mathbf{u}(t) = \mathbf{u}_i + \frac{\mathbf{u}_{i+1} - \mathbf{u}_i}{h_i}(t -
 
 ##### Hermite-Simpson Direct Collocation
 
-For Hermite-Simpson, we use cubic interpolation for the state and quadratic for the control. The cubic interpolation comes from the fact that we use Hermite interpolation, which uses cubic polynomials to interpolate between points while matching both function values and derivatives at the endpoints. 
+For Hermite-Simpson, we use cubic interpolation for the state and quadratic for the control. The cubic interpolation comes from the fact that we use Hermite interpolation, which uses cubic polynomials to interpolate between points while matching both function values and derivatives at the endpoints.
 
 $$
 \begin{aligned}
@@ -1461,7 +1468,6 @@ $$
 \end{aligned}
 $$
 
-
 ##### Runge-Kutta 4 Direct Collocation
 
 For RK4, we use linear interpolation for the state and piecewise constant for the control:
@@ -1494,15 +1500,15 @@ $$\mathbf{u}(t) = \begin{cases}
 \bar{\mathbf{u}}_i & \text{if } t_i + \frac{h_i}{2} \leq t < t_{i+1}
 \end{cases}$$
 
-#### Example: Compressor Surge Problem 
+#### Example: Compressor Surge Problem
 
-Compressors are mechanical devices used to increase the pressure of a gas by reducing its volume. They are found in many industrial settings, from natural gas pipelines to jet engines. However, compressors can suffer from a dangerous phenomenon called "surge" when the gas flow through the compressor falls too much below its design capacity. This can happen under different circumstances such as: 
+Compressors are mechanical devices used to increase the pressure of a gas by reducing its volume. They are found in many industrial settings, from natural gas pipelines to jet engines. However, compressors can suffer from a dangerous phenomenon called "surge" when the gas flow through the compressor falls too much below its design capacity. This can happen under different circumstances such as:
 
 - In a natural gas pipeline system, when there is less customer demand (e.g., during warm weather when less heating is needed) the flow through the compressor lowers.
 - In a jet engine, when the pilot reduces thrust during landing, less air flows through the engine's compressors.
 - In factory, the compressor might be connected through some equipment downstream via a valve. Closing it partially restricts gas flow, similar to pinching a garden hose, and can lead to compressor surge.
 
-As the gas flow decreases, the compressor must work harder to maintain a steady flow. If the flow becomes too low, it can lead to a "breakdown": a phenomenon similar to an airplane stalling at low speeds or high angles of attack. In a compressor, when this breakdown occurs the gas briefly flows backward instead of moving forward, which in turns can cause violent oscillations in pressure which can damage the compressor and the equipments depending on it. One way to address this problem is by installing a close-coupled valve (CCV), which is a device connected at the output of the compressor to quickly modulate the flow. Our aim is not to devise a optimal control approach to ensure that the compressor does not experience a surge by operating this CCV appropriately. 
+As the gas flow decreases, the compressor must work harder to maintain a steady flow. If the flow becomes too low, it can lead to a "breakdown": a phenomenon similar to an airplane stalling at low speeds or high angles of attack. In a compressor, when this breakdown occurs the gas briefly flows backward instead of moving forward, which in turns can cause violent oscillations in pressure which can damage the compressor and the equipments depending on it. One way to address this problem is by installing a close-coupled valve (CCV), which is a device connected at the output of the compressor to quickly modulate the flow. Our aim is not to devise a optimal control approach to ensure that the compressor does not experience a surge by operating this CCV appropriately.
 
 Following  {cite:p}`Gravdahl1997` and {cite}`Grancharova2012`, we model the compressor using a simplified second-order representation:
 
@@ -1530,13 +1536,13 @@ $$
 
 The system parameters are given as $\gamma = 0.5$, $B = 1$, $H = 0.18$, $\psi_{c0} = 0.3$, and $W = 0.25$.
 
-One possible way to pose the problem {cite}`Grancharova2012` is by penalizing for the deviations to the setpoints using a quadratic penalty in the instantenous cost function as well as in the terminal one. Furthermore, we also penalize for taking large actions (which are energy hungry, and potentially unsafe) within the integral term. The idea of penalzing for deviations throughout is natural way of posing the problem when solving it via single shooting. Another alternative which we will explore below is to set the desired setpoint as a hard terminal constraint. 
+One possible way to pose the problem {cite}`Grancharova2012` is by penalizing for the deviations to the setpoints using a quadratic penalty in the instantenous cost function as well as in the terminal one. Furthermore, we also penalize for taking large actions (which are energy hungry, and potentially unsafe) within the integral term. The idea of penalzing for deviations throughout is natural way of posing the problem when solving it via single shooting. Another alternative which we will explore below is to set the desired setpoint as a hard terminal constraint.
 
 The control objective is to stabilize the system and prevent surge, formulated as a continuous-time optimal control problem (COCP) in the Bolza form:
 
 $$
 \begin{aligned}
-\text{minimize} \quad & \left[ \int_0^T \alpha(\mathbf{x}(t) - \mathbf{x}^*)^T(\mathbf{x}(t) - \mathbf{x}^*) + \kappa u(t)^2 \, dt\right] + \beta(\mathbf{x}(T) - \mathbf{x}^*)^T(\mathbf{x}(T) - \mathbf{x}^*) + R v^2  \\
+\text{minimize} \quad & \left[ \int_0^T \alpha(\mathbf{x}(t) - \mathbf{x}^_)^T(\mathbf{x}(t) - \mathbf{x}^_) + \kappa u(t)^2 \, dt\right] + \beta(\mathbf{x}(T) - \mathbf{x}^_)^T(\mathbf{x}(T) - \mathbf{x}^_) + R v^2  \\
 \text{subject to} \quad & \dot{x}_1(t) = B(\Psi_e(x_1(t)) - x_2(t) - u(t)) \\
 & \dot{x}_2(t) = \frac{1}{B}(x_1(t) - \Phi(x_2(t))) \\
 & u_{\text{min}} \leq u(t) \leq u_{\text{max}} \\
@@ -1550,7 +1556,7 @@ The parameters $\alpha$, $\beta$, $\kappa$, and $R$ are non-negative weights tha
 
 The authors in {cite}`Grancharova2012` also add a soft path constraint $x_2(t) \geq 0.4$ to ensure that we maintain a minimum pressure at all time. This is implemented as a soft constraint using slack variables. The reason that we have the term $R v^2$ in the objective is to penalizes violations of the soft constraint: we allow for deviations, but don't want to do it too much.  
 
-In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ as it corresponds to to an unstable equilibrium point. If we were to run the system without applying any control, we would see that the system starts to oscillate. 
+In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ as it corresponds to to an unstable equilibrium point. If we were to run the system without applying any control, we would see that the system starts to oscillate.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -1559,7 +1565,7 @@ In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ 
 
 ##### Solution by Trapezoidal Collocation
 
-Another way to pose the problem is by imposing a terminal state constraint on the system rather than through a penalty in the integral term. In the following experiment, we use a problem formulation of the form: 
+Another way to pose the problem is by imposing a terminal state constraint on the system rather than through a penalty in the integral term. In the following experiment, we use a problem formulation of the form:
 
 $$
 \begin{aligned}
@@ -1572,22 +1578,22 @@ $$
 \end{aligned}
 $$
 
-We then find a control function $u(t)$ and state trajectory $x(t)$ using the trapezoidal collocation method. 
+We then find a control function $u(t)$ and state trajectory $x(t)$ using the trapezoidal collocation method.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
 :load: code/compressor_surge_trapezoidal_collocation.py
 ```
 
-You can try to vary the number of collocation points in the code an observe how the state trajectory progressively matches the ground thruth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise for you to try on your own. 
+You can try to vary the number of collocation points in the code an observe how the state trajectory progressively matches the ground thruth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise for you to try on your own.
 
-## System Identification 
+## System Identification
 
-System identification is the term used outside of machine learning communities to describe the process of inferring unknown quantities of a parameterized dynamical system from observations—in other words, learning a "world model" from data. In the simplest case, we are given a parameterized model of the system and aim to infer the values of its parameters. For example, in the compressor surge problem, one might choose to use the simplified 2nd-order model and then take measurements of the actual compressor to make the model match as closely as possible. We could measure for example the characteristics of the compressor impeller or the close-coupled valve, and then refine our models with those values. 
+System identification is the term used outside of machine learning communities to describe the process of inferring unknown quantities of a parameterized dynamical system from observations—in other words, learning a "world model" from data. In the simplest case, we are given a parameterized model of the system and aim to infer the values of its parameters. For example, in the compressor surge problem, one might choose to use the simplified 2nd-order model and then take measurements of the actual compressor to make the model match as closely as possible. We could measure for example the characteristics of the compressor impeller or the close-coupled valve, and then refine our models with those values.
 
 For instance, to characterize the compressor impeller, we might vary the mass flow rate and measure the resulting pressure increase. We would then use this data to fit the compressor characteristic function $\Psi_e(x_1)$ in our model by estimating parameters like $\psi_{c0}$, $H$, and $W$. The process of planning these experiments is sometimes optimized through an Optimal Design of Experiment phase. In this problem, we aim to determine the most efficient way to collect data, typically by gathering fewer but higher-quality samples at a lower acquisition cost. While we don't cover this material in this course, it's worth noting its relevance to the exploration and data collection problem in machine learning. The cross-pollination of ideas between optimal design of experiments and reinforcement learning could offer valuable insights to researchers and practitioners in both fields.
 
-### Direct Single Shooting Approach 
+### Direct Single Shooting Approach
 A straightforward approach to system identification is to collect data from the system under varying operating conditions and find model parameters that best reconstruct the observed trajectories. This can be formulated as an L2 minimization problem, similar in structure to our optimal control problems, but with the objective function now including a summation over a discrete set of observations collected at specific (and potentially irregular) time intervals.
 Now, one issue we face is that the interval at which the data was collected might differ from the one used by the numerical integration procedure to simulate our model. This discrepancy would make computing the reconstruction error challenging, as the number of datapoints might differ for the two processes. There are two possible ways to address this:
 
@@ -1607,11 +1613,11 @@ $$
 \end{aligned}
 $$
 
-The equation for $\mathbf{x}_{t_k}$ represents linear interpolation between the numerically integrated points to obtain $\mathbf{x}(t_k; \boldsymbol{\theta})$ which we need to compare with the observation collected at $t_k$. 
+The equation for $\mathbf{x}_{t_k}$ represents linear interpolation between the numerically integrated points to obtain $\mathbf{x}(t_k; \boldsymbol{\theta})$ which we need to compare with the observation collected at $t_k$.
 
-#### Parameter Identification in the Compressor Surge Problem 
+#### Parameter Identification in the Compressor Surge Problem
 
-We consider a simple form of system identification where we will attempt to recover the value of the parameter $B$ by reconstructing trajectories of our model and compararing with a dataset of trajectories collected on the real system. 
+We consider a simple form of system identification where we will attempt to recover the value of the parameter $B$ by reconstructing trajectories of our model and compararing with a dataset of trajectories collected on the real system.
 
 This is just a demonstration, therefore we will pretend that the real system is the one where we set the value $B=1$ in the 2nd order simplified model. We will then vary the initial conditions of the sytem by adding a Gaussian noise perturbation to the initial conditions with mean $0$ and standard deviation $0.05$. Furthermore, we will use a"do-nothing" baseline controller which we perturb with Gaussian noise with mean $0$ and standard deviation $0.01$.  
 
@@ -1620,7 +1626,7 @@ This is just a demonstration, therefore we will pretend that the real system is 
 :load: code/compressor_surge_data_collection.py
 ```
 
-We then use this data in a direct single shooting approach where we use RK4 for numerical integration. Note that in this demonstration, the time grids align and we don't need to do use interpolation for the state trajectories. 
+We then use this data in a direct single shooting approach where we use RK4 for numerical integration. Note that in this demonstration, the time grids align and we don't need to do use interpolation for the state trajectories.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -1630,7 +1636,7 @@ We then use this data in a direct single shooting approach where we use RK4 for 
 ### Parameterization of $f$ and Neural ODEs
 In our compressor surge problem, we were provided with a physically-motivated form for the function $f$. This set of equations was likely derived by scientists with deep knowledge of the physical phenomena at play (i.e., gas compression). However, in complex systems, the underlying physics might not be well understood or too complicated to model explicitly. In such cases, we might opt for a more flexible, data-driven approach.
 
-Instead of specifying a fixed structure for $f$, we could use a "black box" model such as a neural network to learn the dynamics directly from data. 
+Instead of specifying a fixed structure for $f$, we could use a "black box" model such as a neural network to learn the dynamics directly from data.
 The optimization problem remains conceptually the same as that of parameter identification. However, we are now optimizing over the parameters of the neural network that defines $f$.
 
 Another possibility is to blend the two approaches and use a grey-box model. In this approach, we typically use a physics-informed parameterization which we then supplement with a black-box model to account for the discrepancies in the observations. Mathematically, this can be expressed as:
@@ -1643,4 +1649,4 @@ where $f_{\text{physics}}$ is the physics-based model with parameters $\boldsymb
 
 We then learn the parameters of the black-box model in tandem with the output of the given physics-based model. You can think of the combination of these two models as a neural network of its own, with the key difference being that one subnetwork (the physics-based one) has frozen weights (non-adjustable parameters).
 
-This approach is easy to implement using automatic differentiation techniques and allows us to leverage prior knowledge to make the data-driven modelling more sample efficient. From a learning perspective, it amounts to providing inductive biases to make learning more efficient and to generalize better. 
+This approach is easy to implement using automatic differentiation techniques and allows us to leverage prior knowledge to make the data-driven modelling more sample efficient. From a learning perspective, it amounts to providing inductive biases to make learning more efficient and to generalize better.

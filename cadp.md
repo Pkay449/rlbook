@@ -912,8 +912,10 @@ In practice when implementing this estimator, we won't have access to the true v
 
 When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be:
 
-```{prf:algorithm} Policy Gradient with Optimal Control Variate and Mini-batches
-:label: policy-grad-cv-batch
+<!-- ```{prf:algorithm} Policy Gradient with Optimal Control Variate and Mini-batches
+:label: policy-grad-cv-batch -->
+
+#### Policy Gradient with Optimal Control Variate and Mini-batches
 
 **Input:** Policy parameterization $d(a|s;\boldsymbol{w})$, value function $v(s;\boldsymbol{\theta})$  
 **Output:** Updated policy parameters $\boldsymbol{w}$  
@@ -938,7 +940,7 @@ When implementing this algorithm nowadays, we always using mini-batching to make
         2. Compute policy loss: $L_\pi = -\frac{1}{M}\sum_{(s,a,\cdot) \in \mathcal{B}_\pi} \log d(a|s;\boldsymbol{w})A(s,a)$
         3. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} - \alpha_w \nabla_{\boldsymbol{w}}L_\pi$
 3. Return $\boldsymbol{w}$
-```
+<!-- ``` -->
 
 ## Generalized Advantage Estimator
 
